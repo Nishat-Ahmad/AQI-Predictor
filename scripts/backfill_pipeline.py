@@ -57,7 +57,7 @@ def process_data(data):
 def log_to_wandb(df):
     print("Initializing Weights & Biases...")
     # job_type helps organize runs in the W&B dashboard
-    run = wandb.init(entity="pearl-aqi", project="pearls-aqi-predictor", job_type="backfill")
+    run = wandb.init(project="pearls-aqi-predictor", job_type="backfill")
     
     # Save the DataFrame locally as a CSV under the project's data directory
     project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))

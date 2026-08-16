@@ -70,7 +70,7 @@ def save_to_feature_store(df):
     print("Initializing Weights & Biases...")
     
     # 6. Initialize a W&B run
-    with wandb.init(entity="pearl-aqi", project="pearls-aqi-predictor", job_type="feature-engineering") as run:
+    with wandb.init(project="pearls-aqi-predictor", job_type="feature-engineering") as run:
         
         # 7. Convert the Pandas DataFrame into a W&B Table
         table = wandb.Table(dataframe=df)
