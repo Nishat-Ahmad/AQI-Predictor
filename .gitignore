@@ -4,3 +4,5 @@ data/*
 !data/.gitkeep
 /app/artifacts/*
 !app/artifacts/.gitkeep
+*/*/*.pkl
+*/*/*.csv
