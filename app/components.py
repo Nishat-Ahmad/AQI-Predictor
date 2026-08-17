@@ -71,7 +71,7 @@ def render_sidebar_inputs():
     st.sidebar.caption(f"Calculated PM Ratio (PM2.5 / PM10): **{pm_ratio}**")
     aqi_change_rate = st.sidebar.slider("AQI Hourly Change Rate (Delta vs prev hour)", min_value=-4.0, max_value=4.0, value=0.0, step=0.5)
 
-    predict_btn = st.sidebar.button("Predict AQI across All Models", type="primary", use_container_width=True)
+    predict_btn = st.sidebar.button("Predict AQI across All Models", type="primary", width="stretch")
 
     input_df = pd.DataFrame([{
         'hour': hour,

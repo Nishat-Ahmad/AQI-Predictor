@@ -1,18 +1,35 @@
-import streamlit as st
-import sys
 import os
+import sys
 
-# Ensure project modules can be cleanly imported
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+# Ensure both the app directory and project root are in sys.path
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.abspath(os.path.join(current_dir, ".."))
 
-from app.components import (
-    apply_custom_styles,
-    render_model_status_bar,
-    render_sidebar_inputs,
-    render_prediction_cards
-)
-from app.model_loader import load_all_models, predict_multi_models
-from app.explainability import render_shap_explanation
+if current_dir not in sys.path:
+    sys.path.insert(0, current_dir)
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
+import streamlit as st
+
+try:
+    from components import (
+        apply_custom_styles,
+        render_model_status_bar,
+        render_sidebar_inputs,
+        render_prediction_cards
+    )
+    from model_loader import load_all_models, predict_multi_models
+    from explainability import render_shap_explanation
+except ImportError:
+    from app.components import (
+        apply_custom_styles,
+        render_model_status_bar,
+        render_sidebar_inputs,
+        render_prediction_cards
+    )
+    from app.model_loader import load_all_models, predict_multi_models
+    from app.explainability import render_shap_explanation
 
 # 1. Page Configuration
 st.set_page_config(
@@ -40,4 +57,4 @@ if predict_clicked:
         input_df=input_df
     )
 else:
-    st.info("Adjust inputs in the sidebar and click **'Predict AQI across All Models'** to view comparative predictions and live SHAP explainability.")
+    st.info("Adjust inputs in the sidebar and click 'Predict AQI across All Models' to view comparative predictions and live SHAP explainability.")

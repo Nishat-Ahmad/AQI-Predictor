@@ -79,7 +79,10 @@ def load_all_models():
     dl_path = os.path.join(ARTIFACTS_DIR, "deep_learning_aqi.pt")
     if os.path.exists(dl_path) and TORCH_AVAILABLE:
         try:
-            checkpoint = torch.load(dl_path, map_location=torch.device("cpu"))
+            try:
+                checkpoint = torch.load(dl_path, map_location=torch.device("cpu"), weights_only=False)
+            except TypeError:
+                checkpoint = torch.load(dl_path, map_location=torch.device("cpu"))
             input_dim = checkpoint.get("input_dim", 11)
             net = AQINeuralNet(input_dim)
             net.load_state_dict(checkpoint["state_dict"])
@@ -87,8 +90,8 @@ def load_all_models():
             models["dl"] = net
             models["dl_scaler"] = checkpoint.get("scaler")
             models["dl_features"] = checkpoint.get("feature_names")
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"Error loading PyTorch model: {e}")
 
     return models
 

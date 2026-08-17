@@ -51,7 +51,7 @@ def render_shap_explanation(rf_model, rf_features, input_df):
                     "Feature Value": "{:.2f}",
                     "SHAP Impact (Delta AQI)": "{:+.4f}"
                 }).background_gradient(subset=["SHAP Impact (Delta AQI)"], cmap="coolwarm"),
-                use_container_width=True
+                width="stretch"
             )
 
     except Exception as e:
