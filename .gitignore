@@ -1,11 +1,29 @@
+# Environment & Logs
 .env
 wandb/
-data/*
+**/wandb/
+
+# Data & Artifacts (ignore all nested folders except .gitkeep)
+data/**
 !data/.gitkeep
-/app/artifacts/*
+artifacts/**
+!artifacts/.gitkeep
+app/artifacts/**
 !app/artifacts/.gitkeep
-weights/*
-!weights/.gitkeep
+
+# Model weights, datasets, checkpoints everywhere
 *.pkl
-*/*/*.pkl
-*/*/*.csv
+**/*.pkl
+*.pt
+**/*.pt
+*.joblib
+**/*.joblib
+*.csv
+**/*.csv
+
+# Python Caches & Checkpoints
+**/__pycache__/
+*.pyc
+**/*.pyc
+.ipynb_checkpoints/
+**/.ipynb_checkpoints/

@@ -5,3 +5,7 @@ python-dotenv
 scikit-learn
 joblib
 streamlit
+torch
+shap
+matplotlib
+scipy
