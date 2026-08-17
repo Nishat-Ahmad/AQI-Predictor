@@ -28,4 +28,4 @@ jobs:
         env:
           OPENWEATHER_API_KEY: ${{ secrets.OPENWEATHER_API_KEY }}
           WANDB_API_KEY: ${{ secrets.WANDB_API_KEY }}
-        run: python feature_pipeline.py
+        run: python scripts/feature_pipeline.py

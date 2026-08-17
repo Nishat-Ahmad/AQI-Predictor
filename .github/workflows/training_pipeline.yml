@@ -26,4 +26,5 @@ jobs:
       - name: Run Training Script
         env:
           WANDB_API_KEY: ${{ secrets.WANDB_API_KEY }}
-        run: python scripts/train.py
+        run: python scripts/backfill_pipeline.py
+
