@@ -40,7 +40,7 @@ def process_data(data):
     print("Engineering historical features...")
     records = []
     
-    # Loop through the massive list of historical hourly records
+    # Loop through the list of historical hourly records
     for item in data.get('list', []):
         dt = datetime.fromtimestamp(item['dt'])
         records.append({
@@ -48,6 +48,7 @@ def process_data(data):
             'hour': dt.hour,
             'day': dt.day,
             'month': dt.month,
+            'day_of_week': dt.weekday(),
             'aqi_target': item['main']['aqi'],
             'co': item['components']['co'],
             'no2': item['components']['no2'],
@@ -57,6 +58,16 @@ def process_data(data):
         })
         
     df = pd.DataFrame(records)
+    if not df.empty:
+        # Sort chronologically to accurately compute change rates
+        df['datetime'] = pd.to_datetime(df['timestamp'])
+        df = df.sort_values('datetime').reset_index(drop=True)
+        df.drop(columns=['datetime'], inplace=True)
+        
+        # Derived features
+        df['aqi_change_rate'] = df['aqi_target'].diff().fillna(0.0)
+        df['pm_ratio'] = (df['pm2_5'] / (df['pm10'] + 1e-5)).round(4)
+        
     return df
 
 def log_to_wandb(df):

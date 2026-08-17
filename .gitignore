@@ -4,5 +4,8 @@ data/*
 !data/.gitkeep
 /app/artifacts/*
 !app/artifacts/.gitkeep
+weights/*
+!weights/.gitkeep
+*.pkl
 */*/*.pkl
 */*/*.csv

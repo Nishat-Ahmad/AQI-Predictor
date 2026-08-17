@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import wandb
 import joblib
@@ -43,13 +44,22 @@ def train_model():
     
     print(f"Model Metrics - RMSE: {rmse:.4f}, MAE: {mae:.4f}, R²: {r2:.4f}")
     
-    # Log metrics to W&B dashboard so you can view them online
+    # Log metrics and feature importances to W&B dashboard
     wandb.log({"rmse": rmse, "mae": mae, "r2": r2})
     
-    # 5. Save the trained model to the Model Registry
-    print("Saving model to W&B Model Registry...")
-    model_filename = "random_forest_aqi.pkl"
-    joblib.dump(model, model_filename)
+    feature_importances = dict(zip(X.columns, model.feature_importances_))
+    for feat_name, importance in feature_importances.items():
+        wandb.log({f"feature_importance/{feat_name}": importance})
+    print("Feature Importances:", feature_importances)
+    
+    # 5. Save the trained model to the local weights folder & Model Registry
+    print("Saving model to local weights folder & W&B Model Registry...")
+    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    weights_dir = os.path.join(project_root, "weights")
+    os.makedirs(weights_dir, exist_ok=True)
+    
+    model_filepath = os.path.join(weights_dir, "random_forest_aqi.pkl")
+    joblib.dump(model, model_filepath)
     
     # Create a Model Artifact
     model_artifact = wandb.Artifact(
@@ -57,7 +67,7 @@ def train_model():
         type="model",
         description="Random Forest Regressor trained on 2 years of Lahore AQI data"
     )
-    model_artifact.add_file(model_filename)
+    model_artifact.add_file(model_filepath)
     run.log_artifact(model_artifact)
     
     run.finish()
