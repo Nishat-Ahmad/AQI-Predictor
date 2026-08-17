@@ -3,7 +3,7 @@ name: Hourly Feature Pipeline
 on:
   schedule:
     - cron: '0 * * * *' # Runs at minute 0 of every hour
-  workflow_dispatch: # Allows you to trigger it manually from GitHub's website
+  workflow_dispatch:
 
 jobs:
   run-feature-pipeline:
@@ -13,11 +13,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Python 3.14
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.14' 
-          # Note: If GitHub Actions doesn't support 3.14 natively yet, change this to '3.12' or '3.11'
+          python-version: '3.12'
 
       - name: Install Dependencies
         run: |
