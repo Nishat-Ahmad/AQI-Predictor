@@ -1,12 +1,17 @@
 import os
+import sys
 import requests
 import pandas as pd
 import wandb
-from dotenv import load_dotenv
 from datetime import datetime
 
-# 1. Load your API keys from the .env file
-load_dotenv()
+# 1. Load API keys if python-dotenv is installed
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
 openweather_key = os.getenv("OPENWEATHER_API_KEY")
 
 # 2. Define the city you want to predict AQI for (e.g., Lahore)
@@ -84,7 +89,14 @@ def save_to_feature_store(df):
         print("Successfully logged features to W&B Feature Store!")
 
 if __name__ == "__main__":
+    if not openweather_key:
+        print("Error: OPENWEATHER_API_KEY environment variable is not set.")
+        sys.exit(1)
+        
     features_df = engineer_features()
     if features_df is not None:
         print(features_df)
         save_to_feature_store(features_df)
+    else:
+        print("Error: Failed to engineer features.")
+        sys.exit(1)

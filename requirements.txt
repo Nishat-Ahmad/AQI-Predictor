@@ -1,0 +1,7 @@
+pandas
+requests
+wandb
+python-dotenv
+scikit-learn
+joblib
+streamlit

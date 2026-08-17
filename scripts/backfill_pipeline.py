@@ -1,12 +1,17 @@
 import os
+import sys
 import requests
 import pandas as pd
 import wandb
 from datetime import datetime, timedelta
-from dotenv import load_dotenv
 
-# Load environment variables
-load_dotenv()
+# Load environment variables if python-dotenv is installed
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
 API_KEY = os.getenv("OPENWEATHER_API_KEY")
 
 # Lahore Coordinates
@@ -82,7 +87,8 @@ def log_to_wandb(df):
 
 if __name__ == "__main__":
     if not API_KEY:
-        print("Error: OPENWEATHER_API_KEY not found in .env file.")
+        print("Error: OPENWEATHER_API_KEY environment variable is not set.")
+        sys.exit(1)
     else:
         # 1. Fetch
         raw_data = fetch_historical_data()

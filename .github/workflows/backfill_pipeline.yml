@@ -1,12 +1,10 @@
-name: Daily Model Training
+name: Backfill Feature Pipeline
 
 on:
-  schedule:
-    - cron: '0 2 * * *' # Runs every day at 2:00 AM UTC
-  workflow_dispatch:
+  workflow_dispatch: # Allows manual trigger from GitHub Actions tab
 
 jobs:
-  run-training-pipeline:
+  run-backfill-pipeline:
     runs-on: ubuntu-latest
 
     steps:
@@ -23,8 +21,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run Training Script
+      - name: Run Backfill Script
         env:
+          OPENWEATHER_API_KEY: ${{ secrets.OPENWEATHER_API_KEY }}
           WANDB_API_KEY: ${{ secrets.WANDB_API_KEY }}
-        run: python models/randomForest.py
-
+        run: python scripts/backfill_pipeline.py
