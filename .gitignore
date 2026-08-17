@@ -2,3 +2,5 @@
 wandb/
 data/*
 !data/.gitkeep
+/app/artifacts/*
+!app/artifacts/.gitkeep
