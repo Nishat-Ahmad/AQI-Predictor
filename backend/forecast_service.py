@@ -6,21 +6,30 @@ import numpy as np
 from backend.model_service import model_service
 from backend.schemas import HourlyForecastPoint, DaySummary, ForecastResponse
 
+from dotenv import load_dotenv
+load_dotenv()
+
 # Load environment
-API_KEY = os.getenv("OPENWEATHER_API_KEY")
 DEFAULT_LAT = float(os.getenv("CITY_LAT", "51.5074"))
 DEFAULT_LON = float(os.getenv("CITY_LON", "-0.1278"))
 DEFAULT_CITY = "London, United Kingdom"
 
+def get_api_key() -> str:
+    return os.getenv("OPENWEATHER_API_KEY") or ""
+
 def fetch_openweather_forecast(lat: float, lon: float):
     """Fetches real-time 5-day hourly air pollution forecast from OpenWeather for any global coordinates."""
-    if not API_KEY:
+    api_key = get_api_key()
+    if not api_key:
+        print("Warning: OPENWEATHER_API_KEY is not set or empty in environment.")
         return None
-    url = f"http://api.openweathermap.org/data/2.5/air_pollution/forecast?lat={lat}&lon={lon}&appid={API_KEY}"
+    url = f"http://api.openweathermap.org/data/2.5/air_pollution/forecast?lat={lat}&lon={lon}&appid={api_key}"
     try:
         resp = requests.get(url, timeout=10)
         if resp.status_code == 200:
             return resp.json().get("list", [])
+        else:
+            print(f"Warning: OpenWeather forecast API returned status {resp.status_code}: {resp.text}")
     except Exception as e:
         print(f"Warning: OpenWeather forecast API failed for ({lat}, {lon}): {e}")
     return None

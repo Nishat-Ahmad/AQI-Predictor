@@ -2,6 +2,9 @@ import os
 import sys
 from datetime import datetime
 
+from dotenv import load_dotenv
+load_dotenv()
+
 # Ensure root directory is on sys.path
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if PROJECT_ROOT not in sys.path:
