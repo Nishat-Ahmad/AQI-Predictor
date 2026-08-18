@@ -8,8 +8,6 @@ data/**
 !data/.gitkeep
 artifacts/**
 !artifacts/.gitkeep
-app/artifacts/**
-!app/artifacts/.gitkeep
 
 # Model weights, datasets, checkpoints everywhere
 *.pkl

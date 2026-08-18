@@ -1,6 +1,6 @@
 # Lahore AQI Multi-Model Forecasting & Intelligence Platform
 
-An end-to-end Machine Learning and MLOps system for 3-Day Air Quality Index (AQI) forecasting and real-time inference in Lahore, Pakistan. Powered by OpenWeather data, Weights & Biases (W&B) for artifact tracking and model registry, a FastAPI backend service, and a modular Streamlit dashboard with SHAP explainability.
+An end-to-end Machine Learning and MLOps system for 3-Day Air Quality Index (AQI) forecasting and real-time inference in Lahore, Pakistan. Powered by OpenWeather data, Weights & Biases (W&B) for artifact tracking and model registry, a FastAPI backend service, and a custom glassmorphism web dashboard with live Chart.js trajectories and SHAP explainability.
 
 ---
 
@@ -9,7 +9,7 @@ An end-to-end Machine Learning and MLOps system for 3-Day Air Quality Index (AQI
 ```
 AQI-Predictor/
 ├── .env                       # API keys (OpenWeather, W&B)
-├── requirements.txt           # Project dependencies
+├── requirements.txt           # Project dependencies (FastAPI, PyTorch, Scikit-Learn, SHAP)
 ├── Procfile                   # Cloud deployment entrypoint (Render / Railway)
 ├── render.yaml                # Render deployment specification
 ├── scripts/
@@ -21,16 +21,14 @@ AQI-Predictor/
 │   ├── ridge_regression.py    # Ridge Regression baseline with CV
 │   └── deep_learning.py       # PyTorch Deep Learning MLP Regressor
 ├── backend/
-│   ├── main.py                # FastAPI app with Swagger UI docs (/docs)
+│   ├── main.py                # FastAPI app serving REST API & static web UI
 │   ├── schemas.py             # Pydantic request/response validation
 │   ├── model_service.py       # Multi-model inference engine (RF, Ridge, PyTorch)
 │   └── forecast_service.py    # 72-hour OpenWeather forecast synthesizer
-├── app/
-│   ├── app.py                 # Streamlit entrypoint with Dual Tabs
-│   ├── api_client.py          # HTTP client communicating with FastAPI backend
-│   ├── components.py          # 3-Day forecast charts, metric cards, status bars
-│   ├── model_loader.py        # Local model loading fallback
-│   └── explainability.py      # SHAP waterfall plots & feature contribution tables
+├── frontend/
+│   ├── index.html             # Modern HTML5 dashboard layout
+│   ├── css/style.css          # Custom glassmorphism dark theme
+│   └── js/app.js              # Chart.js dynamic time-series & SHAP visualizer
 └── artifacts/                 # Local model checkpoints and dataset artifacts
 ```
 
@@ -38,28 +36,31 @@ AQI-Predictor/
 
 ## Key Features
 
-1. **3-Day Air Quality Forecast (72 Hours)**:
+1. **3-Day Air Quality Forecast (72-Hour Horizon)**:
    - Fetches 72 hours of future atmospheric projections from OpenWeather.
    - Computes derived features (`pm_ratio` and `aqi_change_rate`) across the time series.
    - Generates multi-model predictions comparing **Random Forest**, **Ridge Regression**, and **Deep Learning (PyTorch)** along with daily summary cards (Avg AQI, Peak Hours, Dominant Pollutant).
 
-2. **Multi-Model Suite**:
+2. **Multi-Model AI Suite**:
    - **Ridge Regression**: Linear statistical baseline with cross-validated regularization.
    - **Random Forest**: Non-linear tree ensemble with feature importances.
    - **Deep Learning**: PyTorch Multi-Layer Perceptron (MLP) with Batch Normalization and Dropout.
    - **Unified Benchmarking**: Side-by-side comparison script logging leaderboard metrics (RMSE, MAE, R2) to Weights & Biases.
 
 3. **FastAPI Backend REST Service**:
-   - Dedicated REST API service with automated Swagger documentation at `/docs`.
+   - Production REST API with automated Swagger documentation at `/docs`.
    - Endpoints:
+     - `GET /` : Serves the custom web dashboard.
      - `GET /health` : Backend & model readiness status.
      - `POST /predict` : Single-point multi-model inference.
      - `GET /forecast/3day` : 72-hour forecast with daily aggregations.
      - `POST /explain` : SHAP feature contribution breakdown.
 
-4. **Streamlit Frontend with SHAP Explainability**:
-   - **Tab 1: 3-Day Live Forecast**: Real-time 72-hour multi-model trajectory chart & daily cards.
-   - **Tab 2: Scenario Simulator & SHAP**: Interactive slider simulation and live local SHAP waterfall diagrams.
+4. **Custom Frontend Dashboard**:
+   - Built with Vanilla HTML5, CSS3, and JavaScript with zero heavy framework bloat.
+   - Interactive 72-hour multi-model trajectory chart powered by Chart.js.
+   - Live SHAP feature importance visualizer.
+   - Day 1, Day 2, and Day 3 outlook summary cards with health advisories.
 
 ---
 
@@ -86,37 +87,20 @@ python scripts/backfill_pipeline.py
 python models/compare_models.py
 ```
 
-### 3. Start the Services
-
-#### Option A: Start FastAPI Backend + Streamlit Frontend
+### 3. Start the Web Application
 ```bash
-# Terminal 1: Start FastAPI REST API
 uvicorn backend.main:app --port 8000 --reload
-
-# Terminal 2: Start Streamlit Frontend
-streamlit run app/app.py
 ```
-* Interactive Swagger Docs: `http://localhost:8000/docs`
-* Streamlit Web App: `http://localhost:8501`
-
-#### Option B: Standalone Streamlit (with In-Process Engine)
-```bash
-streamlit run app/app.py
-```
+* **Web Dashboard**: Open [http://localhost:8000/](http://localhost:8000/)
+* **Interactive API Swagger Docs**: Open [http://localhost:8000/docs](http://localhost:8000/docs)
 
 ---
 
-## Cloud Deployment (Render / Railway / Streamlit Cloud)
+## Cloud Deployment (Render / Railway / Vercel)
 
-### FastAPI Backend on Render / Railway
+### Deploying to Render
 1. Push your repository to GitHub.
-2. Create a new **Web Service** on [Render](https://render.com) or [Railway](https://railway.app).
-3. Set the start command:
-   ```bash
-   uvicorn backend.main:app --host 0.0.0.0 --port $PORT
-   ```
-4. Add environment variables (`OPENWEATHER_API_KEY`, `WANDB_API_KEY`).
-
-### Streamlit Frontend on Streamlit Cloud
-1. Deploy to [Streamlit Community Cloud](https://streamlit.io/cloud) pointing to `app/app.py`.
-2. *(Optional)* Add `API_URL = "https://your-api.onrender.com"` under App Settings $\to$ Secrets. If omitted, the app will seamlessly run using its built-in in-process inference engine.
+2. Create a new **Web Service** on [Render](https://render.com).
+3. Connect your repository. Render automatically reads [`render.yaml`](file:///d:/Code/AQI-Predictor/render.yaml) and [`Procfile`](file:///d:/Code/AQI-Predictor/Procfile).
+4. Add environment variables: `OPENWEATHER_API_KEY` and `WANDB_API_KEY`.
+5. Your application will be live at `https://your-app-name.onrender.com/` serving both the custom web UI and the FastAPI REST API!
