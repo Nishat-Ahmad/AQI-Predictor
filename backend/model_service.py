@@ -128,7 +128,7 @@ class ModelService:
             try:
                 data = joblib.load(ridge_path)
                 if isinstance(data, dict):
-                    self.ridge = data.get("model")
+                    self.ridge = data.get("model") or data.get("pipeline")
                     self.ridge_features = data.get("feature_names")
                 else:
                     self.ridge = data
