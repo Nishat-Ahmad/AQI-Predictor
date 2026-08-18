@@ -8,9 +8,9 @@ from backend.schemas import HourlyForecastPoint, DaySummary, ForecastResponse
 
 # Load environment
 API_KEY = os.getenv("OPENWEATHER_API_KEY")
-DEFAULT_LAT = float(os.getenv("CITY_LAT", "31.5204"))
-DEFAULT_LON = float(os.getenv("CITY_LON", "74.3587"))
-DEFAULT_CITY = "Lahore, Pakistan"
+DEFAULT_LAT = float(os.getenv("CITY_LAT", "51.5074"))
+DEFAULT_LON = float(os.getenv("CITY_LON", "-0.1278"))
+DEFAULT_CITY = "London, United Kingdom"
 
 def fetch_openweather_forecast(lat: float, lon: float):
     """Fetches real-time 5-day hourly air pollution forecast from OpenWeather for any global coordinates."""

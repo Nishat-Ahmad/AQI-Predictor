@@ -2,8 +2,6 @@
 export const GLOBAL_CAPITALS = [
     // --- ASIA ---
     { name: "Islamabad", country: "Pakistan", lat: 33.6844, lon: 73.0479, region: "Asia" },
-    { name: "Lahore", country: "Pakistan", lat: 31.5204, lon: 74.3587, region: "Asia" },
-    { name: "Karachi", country: "Pakistan", lat: 24.8607, lon: 67.0011, region: "Asia" },
     { name: "Kabul", country: "Afghanistan", lat: 34.5553, lon: 69.2075, region: "Asia" },
     { name: "Yerevan", country: "Armenia", lat: 40.1792, lon: 44.4991, region: "Asia" },
     { name: "Baku", country: "Azerbaijan", lat: 40.4093, lon: 49.8671, region: "Asia" },

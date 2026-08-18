@@ -1,4 +1,4 @@
-// Leaflet Interactive World Map Module for Global Capitals
+// Leaflet Interactive World Map Module with Real-time Search
 import { GLOBAL_CAPITALS } from './capitals.js';
 
 let mapInstance = null;
@@ -34,8 +34,8 @@ export function initGlobalMap(onCitySelectCallback) {
         maxZoom: 19
     }).addTo(mapInstance);
 
-    // Populate City Search Dropdown & Render Markers
-    populateSearchDropdown(onCitySelectCallback);
+    // Setup Search Bar & Render Markers
+    setupCapitalSearchBar(onCitySelectCallback);
     renderCapitalMarkers(onCitySelectCallback);
 
     // Click anywhere on map to select custom coordinates
@@ -70,7 +70,7 @@ function createCustomPin(isCurrent = false) {
 function renderCapitalMarkers(onCitySelectCallback) {
     GLOBAL_CAPITALS.forEach((cap) => {
         const marker = L.marker([cap.lat, cap.lon], {
-            icon: createCustomPin(cap.name === "Lahore")
+            icon: createCustomPin(cap.name === "London")
         }).addTo(mapInstance);
 
         marker.bindTooltip(`<strong>${cap.name}</strong>, ${cap.country}`, {
@@ -86,7 +86,7 @@ function renderCapitalMarkers(onCitySelectCallback) {
 
         markersMap[`${cap.name}_${cap.country}`] = marker;
 
-        if (cap.name === "Lahore") {
+        if (cap.name === "London") {
             selectedMarker = marker;
         }
     });
@@ -110,14 +110,24 @@ export function selectCityMarker(cap, onCitySelectCallback) {
         duration: 1.2
     });
 
-    const searchSelect = document.getElementById("capital-select");
-    if (searchSelect) {
-        searchSelect.value = `${cap.lat},${cap.lon},${cap.name}, ${cap.country}`;
-    }
-
     const mapTitleEl = document.getElementById("map-selected-city");
     if (mapTitleEl) {
         mapTitleEl.innerText = `${cap.name}, ${cap.country}`;
+    }
+
+    const searchInput = document.getElementById("capital-search-input");
+    if (searchInput) {
+        searchInput.value = `${cap.name}, ${cap.country}`;
+    }
+
+    const clearBtn = document.getElementById("btn-clear-search");
+    if (clearBtn) {
+        clearBtn.style.display = searchInput && searchInput.value ? "block" : "none";
+    }
+
+    const resultsDropdown = document.getElementById("search-results-dropdown");
+    if (resultsDropdown) {
+        resultsDropdown.style.display = "none";
     }
 
     if (typeof onCitySelectCallback === "function") {
@@ -125,41 +135,123 @@ export function selectCityMarker(cap, onCitySelectCallback) {
     }
 }
 
-function populateSearchDropdown(onCitySelectCallback) {
-    const searchSelect = document.getElementById("capital-select");
-    if (!searchSelect) return;
+function setupCapitalSearchBar(onCitySelectCallback) {
+    const searchInput = document.getElementById("capital-search-input");
+    const resultsDropdown = document.getElementById("search-results-dropdown");
+    const clearBtn = document.getElementById("btn-clear-search");
 
-    searchSelect.innerHTML = "";
+    if (!searchInput || !resultsDropdown) return;
 
-    // Group capitals by region
-    const regions = {};
-    GLOBAL_CAPITALS.forEach(c => {
-        if (!regions[c.region]) regions[c.region] = [];
-        regions[c.region].push(c);
-    });
+    let activeIndex = -1;
 
-    for (const [region, cities] of Object.entries(regions)) {
-        const optgroup = document.createElement("optgroup");
-        optgroup.label = region;
-        cities.forEach(c => {
-            const opt = document.createElement("option");
-            opt.value = `${c.lat},${c.lon},${c.name}, ${c.country}`;
-            opt.innerText = `${c.name} (${c.country})`;
-            if (c.name === "Lahore") opt.selected = true;
-            optgroup.appendChild(opt);
+    function renderResults(query) {
+        const q = query.trim().toLowerCase();
+        if (!q) {
+            resultsDropdown.style.display = "none";
+            if (clearBtn) clearBtn.style.display = "none";
+            return;
+        }
+
+        if (clearBtn) clearBtn.style.display = "block";
+
+        const matches = GLOBAL_CAPITALS.filter(c => 
+            c.name.toLowerCase().includes(q) || 
+            c.country.toLowerCase().includes(q) ||
+            c.region.toLowerCase().includes(q)
+        ).slice(0, 10);
+
+        resultsDropdown.innerHTML = "";
+        activeIndex = -1;
+
+        if (matches.length === 0) {
+            resultsDropdown.innerHTML = `<div class="search-no-results">No world capitals found matching "${query}"</div>`;
+            resultsDropdown.style.display = "block";
+            return;
+        }
+
+        matches.forEach((c, idx) => {
+            const item = document.createElement("div");
+            item.className = "search-result-item";
+            item.dataset.index = idx;
+            item.innerHTML = `
+                <div class="sr-left">
+                    <span class="sr-city">${c.name}</span>
+                    <span class="sr-country">${c.country}</span>
+                </div>
+                <span class="sr-region">${c.region}</span>
+            `;
+
+            item.addEventListener("click", () => {
+                selectCityMarker(c, onCitySelectCallback);
+                resultsDropdown.style.display = "none";
+            });
+
+            resultsDropdown.appendChild(item);
         });
-        searchSelect.appendChild(optgroup);
+
+        resultsDropdown.style.display = "block";
     }
 
-    searchSelect.addEventListener("change", (e) => {
-        const [lat, lon, name, country] = e.target.value.split(",");
-        const cap = {
-            lat: parseFloat(lat),
-            lon: parseFloat(lon),
-            name: name.trim(),
-            country: country ? country.trim() : ""
-        };
-        selectCityMarker(cap, onCitySelectCallback);
+    searchInput.addEventListener("input", (e) => {
+        renderResults(e.target.value);
+    });
+
+    searchInput.addEventListener("focus", (e) => {
+        if (e.target.value.trim()) {
+            renderResults(e.target.value);
+        }
+    });
+
+    // Keyboard navigation (Arrow keys + Enter)
+    searchInput.addEventListener("keydown", (e) => {
+        const items = resultsDropdown.querySelectorAll(".search-result-item");
+        if (items.length === 0) return;
+
+        if (e.key === "ArrowDown") {
+            e.preventDefault();
+            activeIndex = (activeIndex + 1) % items.length;
+            updateActiveItem(items);
+        } else if (e.key === "ArrowUp") {
+            e.preventDefault();
+            activeIndex = (activeIndex - 1 + items.length) % items.length;
+            updateActiveItem(items);
+        } else if (e.key === "Enter") {
+            e.preventDefault();
+            if (activeIndex >= 0 && activeIndex < items.length) {
+                items[activeIndex].click();
+            } else if (items.length > 0) {
+                items[0].click();
+            }
+        } else if (e.key === "Escape") {
+            resultsDropdown.style.display = "none";
+        }
+    });
+
+    function updateActiveItem(items) {
+        items.forEach((item, idx) => {
+            if (idx === activeIndex) {
+                item.classList.add("active-item");
+                item.scrollIntoView({ block: "nearest" });
+            } else {
+                item.classList.remove("active-item");
+            }
+        });
+    }
+
+    if (clearBtn) {
+        clearBtn.addEventListener("click", () => {
+            searchInput.value = "";
+            clearBtn.style.display = "none";
+            resultsDropdown.style.display = "none";
+            searchInput.focus();
+        });
+    }
+
+    // Close dropdown on click outside
+    document.addEventListener("click", (e) => {
+        if (!searchInput.contains(e.target) && !resultsDropdown.contains(e.target)) {
+            resultsDropdown.style.display = "none";
+        }
     });
 }
 

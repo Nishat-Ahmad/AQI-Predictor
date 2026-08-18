@@ -19,7 +19,7 @@ export async function checkHealth(statusLabelEl) {
     return null;
 }
 
-export async function fetch3DayForecast(lat = 31.5204, lon = 74.3587, city = "Lahore, Pakistan") {
+export async function fetch3DayForecast(lat = 51.5074, lon = -0.1278, city = "London, United Kingdom") {
     try {
         const url = `${API_BASE_URL}/forecast/3day?lat=${lat}&lon=${lon}&city=${encodeURIComponent(city)}`;
         const res = await fetch(url);
@@ -31,7 +31,7 @@ export async function fetch3DayForecast(lat = 31.5204, lon = 74.3587, city = "La
     }
 }
 
-export function getFallbackData(city = "Lahore, Pakistan", lat = 31.5204, lon = 74.3587) {
+export function getFallbackData(city = "London, United Kingdom", lat = 51.5074, lon = -0.1278) {
     const mockHourly = [];
     const now = new Date();
     for (let i = 0; i < 72; i++) {

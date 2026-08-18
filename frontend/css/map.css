@@ -41,32 +41,127 @@
     gap: 0.6rem;
 }
 
-.capital-search-select {
-    padding: 0.45rem 0.9rem;
+/* Interactive Live Capital Search Box */
+.capital-search-box {
+    position: relative;
+    width: 280px;
+}
+
+.search-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.search-icon {
+    position: absolute;
+    left: 10px;
+    color: var(--text-dim);
+    pointer-events: none;
+}
+
+.capital-search-input {
+    width: 100%;
+    padding: 0.45rem 1.8rem 0.45rem 2rem;
     border-radius: 10px;
     background: var(--bg-chip);
     border: 1px solid var(--border-color);
     color: var(--text-primary);
     font-size: 0.82rem;
-    font-weight: 600;
-    cursor: pointer;
+    font-weight: 500;
     outline: none;
+    transition: all 0.2s ease;
 }
 
-.capital-search-select:focus {
+.capital-search-input:focus {
     border-color: var(--accent-primary);
-    box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
-}
-
-.capital-search-select optgroup {
-    background: var(--bg-base);
-    color: var(--text-dim);
-    font-weight: 700;
-}
-
-.capital-search-select option {
     background: var(--bg-card);
+    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+}
+
+.capital-search-input::placeholder {
+    color: var(--text-dim);
+    font-size: 0.8rem;
+}
+
+.clear-search-btn {
+    position: absolute;
+    right: 8px;
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    font-size: 1.1rem;
+    cursor: pointer;
+    line-height: 1;
+    padding: 2px 4px;
+}
+
+.clear-search-btn:hover {
     color: var(--text-primary);
+}
+
+/* Autocomplete Results Dropdown */
+.search-results-dropdown {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    max-height: 280px;
+    overflow-y: auto;
+    background: var(--bg-card);
+    backdrop-filter: blur(28px);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+    padding: 0.35rem;
+}
+
+.search-result-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.82rem;
+    transition: background-color 0.15s ease;
+}
+
+.search-result-item:hover, .search-result-item.active-item {
+    background: rgba(56, 189, 248, 0.14);
+}
+
+.sr-left {
+    display: flex;
+    flex-direction: column;
+}
+
+.sr-city {
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.sr-country {
+    font-size: 0.72rem;
+    color: var(--text-dim);
+}
+
+.sr-region {
+    font-size: 0.68rem;
+    padding: 0.15rem 0.45rem;
+    background: var(--bg-chip);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--accent-primary);
+    font-weight: 600;
+}
+
+.search-no-results {
+    padding: 0.75rem;
+    text-align: center;
+    font-size: 0.78rem;
+    color: var(--text-dim);
 }
 
 /* Map Canvas Container */

@@ -57,20 +57,22 @@
             <section class="frost-card map-card-container">
                 <div class="map-header-bar">
                     <div class="map-title-group">
-                        <div class="station-chip">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="12" cy="12" r="10"/>
-                                <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>
-                                <path d="M2 12h20"/>
-                            </svg>
-                            <span>Interactive Global Capitals Map</span>
-                        </div>
-                        <div class="map-city-pill" id="map-selected-city">Lahore, Pakistan</div>
+                        <div class="map-city-pill" id="map-selected-city">London, United Kingdom</div>
                     </div>
 
                     <div class="map-controls-group">
-                        <label for="capital-select" style="font-size: 0.76rem; color: var(--text-dim);">Jump to Capital:</label>
-                        <select id="capital-select" class="capital-search-select" title="Select a world capital"></select>
+                        <!-- Real-time Interactive Search Bar -->
+                        <div class="capital-search-box">
+                            <div class="search-input-wrapper">
+                                <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="11" cy="11" r="8"/>
+                                    <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                                </svg>
+                                <input type="text" id="capital-search-input" class="capital-search-input" placeholder="Search capital or country..." autocomplete="off" />
+                                <button type="button" id="btn-clear-search" class="clear-search-btn" title="Clear search" style="display: none;">&times;</button>
+                            </div>
+                            <div id="search-results-dropdown" class="search-results-dropdown" style="display: none;"></div>
+                        </div>
                     </div>
                 </div>
 
@@ -207,7 +209,7 @@
                 <div class="section-topbar">
                     <div>
                         <h2 class="section-heading">3-Day Weather and Air Outlook</h2>
-                        <p class="section-subtext">Hourly synthesized predictions across Lahore 72-hour horizon</p>
+                        <p class="section-subtext">Hourly synthesized predictions across 72-hour horizon</p>
                     </div>
                     <div class="horizon-pill">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -324,7 +326,7 @@
 
         <!-- Weather Platform Footer -->
         <footer class="weather-footer">
-            <p>Lahore Atmospheric AI Platform - Real-time OpenWeather Feed, FastAPI and Weights & Biases</p>
+            <p>Global Atmospheric AI Platform - Real-time OpenWeather Feed, FastAPI and Weights & Biases</p>
         </footer>
     </div>
 

@@ -8,10 +8,10 @@ import { renderHeroAtmosphere, renderModelTiles, renderDayCards } from './ui.js'
 let cachedHourlyData = [];
 let activeFilter = "all";
 let activeCity = {
-    name: "Lahore",
-    country: "Pakistan",
-    lat: 31.5204,
-    lon: 74.3587
+    name: "London",
+    country: "United Kingdom",
+    lat: 51.5074,
+    lon: -0.1278
 };
 
 // Initialize Application

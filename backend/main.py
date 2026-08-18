@@ -1,5 +1,6 @@
 import os
 import sys
+from datetime import datetime
 
 # Ensure root directory is on sys.path
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -23,8 +24,8 @@ from backend.forecast_service import generate_3day_forecast
 import pandas as pd
 
 app = FastAPI(
-    title="Lahore AQI Predictor & 3-Day Forecast API",
-    description="Production REST API serving multi-algorithm AQI predictions (Random Forest, Ridge Regression, PyTorch Deep Learning) and real-time 72-hour air quality forecasts for Lahore, Pakistan.",
+    title="Global AQI Predictor & 3-Day Forecast API",
+    description="Production REST API serving multi-algorithm AQI predictions (Random Forest, Ridge Regression, PyTorch Deep Learning) and real-time 72-hour air quality forecasts for world capitals.",
     version="1.0.0"
 )
 
@@ -46,22 +47,32 @@ if os.path.exists(os.path.join(FRONTEND_DIR, "css")):
 if os.path.exists(os.path.join(FRONTEND_DIR, "js")):
     app.mount("/js", StaticFiles(directory=os.path.join(FRONTEND_DIR, "js")), name="js")
 
-# Serve Custom Frontend Dashboard at Root URL
-@app.get("/", tags=["UI"])
-def serve_ui():
-    index_file = os.path.join(FRONTEND_DIR, "index.html")
-    if os.path.exists(index_file):
-        return FileResponse(index_file)
-    return {"message": "Frontend index.html not found, please check frontend/ directory."}
+# Mount public directory if present
+if os.path.exists(os.path.join(FRONTEND_DIR, "public")):
+    app.mount("/public", StaticFiles(directory=os.path.join(FRONTEND_DIR, "public")), name="public")
+
+# Serve Frontend HTML
+@app.get("/", tags=["Frontend"])
+def serve_index():
+    # If Astro build output exists, serve from dist/
+    dist_html = os.path.join(FRONTEND_DIR, "dist", "index.html")
+    if os.path.exists(dist_html):
+        return FileResponse(dist_html)
+    
+    # Otherwise serve raw frontend/index.html
+    raw_html = os.path.join(FRONTEND_DIR, "index.html")
+    if os.path.exists(raw_html):
+        return FileResponse(raw_html)
+    return {"message": "Frontend not found, please check frontend/ directory."}
 
 @app.get("/api/info", tags=["General"])
 def api_info():
     return {
-        "service": "Lahore AQI Prediction & 3-Day Forecasting Service",
+        "service": "Global AQI Prediction & 3-Day Forecasting Service",
         "status": "healthy",
         "docs": "/docs",
         "endpoints": {
-            "health": "/health",
+            "health": "GET /health",
             "predict": "POST /predict",
             "forecast_3day": "GET /forecast/3day",
             "explain": "POST /explain"
@@ -70,11 +81,14 @@ def api_info():
 
 @app.get("/health", tags=["Health"])
 def health_check():
+    """Health check endpoint confirming API status, timestamp, and loaded model status."""
     status = model_service.get_status()
-    all_ready = any([status["random_forest"], status["ridge_regression"], status["deep_learning"]])
+    all_ready = any([status.get("random_forest"), status.get("ridge_regression"), status.get("deep_learning")])
     return {
         "status": "online" if all_ready else "degraded",
-        "models_loaded": status
+        "timestamp": datetime.now().isoformat(),
+        "models_loaded": status,
+        "service": "Global AQI Prediction & 3-Day Forecasting Service"
     }
 
 @app.post("/predict", response_model=PredictionResponse, tags=["Inference"])
@@ -98,9 +112,9 @@ def predict_aqi(payload: EnvironmentalInput):
 
 @app.get("/forecast/3day", response_model=ForecastResponse, tags=["Forecasting"])
 def get_3day_forecast(
-    lat: float = 31.5204,
-    lon: float = 74.3587,
-    city: str = "Lahore, Pakistan"
+    lat: float = 51.5074,
+    lon: float = -0.1278,
+    city: str = "London, United Kingdom"
 ):
     """Fetches OpenWeather future pollution data for any global capital, executes 72-hour multi-model inference, and returns daily summaries."""
     try:
@@ -113,39 +127,41 @@ def get_3day_forecast(
 def explain_prediction(payload: ExplainRequest):
     """Computes SHAP feature importance contributions for a given input using the Random Forest model."""
     if model_service.rf is None:
-        raise HTTPException(status_code=503, detail="Random Forest model not loaded for SHAP explanation.")
-
+        raise HTTPException(status_code=503, detail="Random Forest model not loaded for SHAP explanation")
+    
     try:
         import shap
-        input_df = pd.DataFrame([payload.features.dict()])
-        cols = model_service.rf_features or list(input_df.columns)
-        aligned = input_df.reindex(columns=cols, fill_value=0.0)
-
+        feat_dict = payload.features.dict()
+        cols = ["hour", "day", "month", "day_of_week", "co", "no2", "o3", "pm2_5", "pm10", "pm_ratio", "aqi_change_rate"]
+        
+        # Calculate derived features
+        if feat_dict["pm_ratio"] is None and feat_dict["pm10"] > 0:
+            feat_dict["pm_ratio"] = feat_dict["pm2_5"] / feat_dict["pm10"]
+        elif feat_dict["pm_ratio"] is None:
+            feat_dict["pm_ratio"] = 0.5
+            
+        row = [feat_dict[c] for c in cols]
+        df_row = pd.DataFrame([row], columns=cols)
+        
         explainer = shap.TreeExplainer(model_service.rf)
-        shap_vals = explainer(aligned)
-
-        base_val = float(explainer.expected_value[0]) if isinstance(explainer.expected_value, (list, tuple)) else float(explainer.expected_value)
-        pred_val = float(model_service.rf.predict(aligned)[0])
-
+        shap_values = explainer.shap_values(df_row)
+        base_value = float(explainer.expected_value[0] if isinstance(explainer.expected_value, (list, np.ndarray)) else explainer.expected_value)
+        
         contributions = []
-        for feat, val in zip(aligned.columns, shap_vals[0].values):
+        for feat_name, val, shap_val in zip(cols, row, shap_values[0]):
             contributions.append({
-                "feature": feat,
-                "value": float(aligned[feat].iloc[0]),
-                "shap_impact": round(float(val), 4)
+                "feature": feat_name,
+                "value": float(val),
+                "shap_value": float(shap_val)
             })
-
-        contributions.sort(key=lambda x: abs(x["shap_impact"]), reverse=True)
-
+            
+        contributions.sort(key=lambda x: abs(x["shap_value"]), reverse=True)
+        pred = float(model_service.rf.predict(df_row)[0])
+        
         return ExplainResponse(
-            base_value=round(base_val, 2),
-            prediction=round(pred_val, 2),
+            base_value=base_value,
+            prediction=pred,
             contributions=contributions
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Explainability calculation error: {str(e)}")
-
-if __name__ == "__main__":
-    import uvicorn
-    port = int(os.environ.get("PORT", 8000))
-    uvicorn.run("backend.main:app", host="0.0.0.0", port=port, reload=True)
+        raise HTTPException(status_code=500, detail=f"SHAP explanation failed: {str(e)}")
