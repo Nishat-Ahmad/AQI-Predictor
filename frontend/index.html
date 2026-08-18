@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lahore AQI Forecast & Intelligence Platform</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Background Gradient Ambient Glows -->
+    <div class="ambient-glow glow-1"></div>
+    <div class="ambient-glow glow-2"></div>
+
+    <div class="app-container">
+        <!-- Navigation Header -->
+        <header class="navbar">
+            <div class="nav-brand">
+                <div class="brand-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>
+                    </svg>
+                </div>
+                <div class="brand-text">
+                    <h1>Lahore AQI Intelligence</h1>
+                    <span class="brand-sub">Multi-Model AI 3-Day Air Quality Forecast</span>
+                </div>
+            </div>
+
+            <div class="nav-controls">
+                <div class="status-pill" id="api-status">
+                    <span class="status-dot"></span>
+                    <span class="status-text">Connecting to API...</span>
+                </div>
+                <button class="btn-refresh" id="btn-refresh" title="Refresh live forecast">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+                    </svg>
+                    <span>Refresh</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="dashboard-content">
+            
+            <!-- Hero Summary Grid -->
+            <section class="hero-section">
+                <!-- Current Live AQI Card -->
+                <div class="hero-card glass-card" id="current-aqi-card">
+                    <div class="card-header-compact">
+                        <span class="badge-location">Lahore, Pakistan (31.52° N, 74.35° E)</span>
+                        <span class="timestamp-label" id="current-timestamp">Updated: Just now</span>
+                    </div>
+
+                    <div class="hero-body">
+                        <div class="aqi-display">
+                            <span class="aqi-value" id="current-aqi-val">--</span>
+                            <span class="aqi-scale">/ 5.0</span>
+                        </div>
+                        <div class="aqi-meta">
+                            <div class="aqi-badge-status" id="current-aqi-badge">Calculating...</div>
+                            <p class="aqi-description" id="current-aqi-advisory">Loading live atmospheric data...</p>
+                        </div>
+                    </div>
+
+                    <div class="pollutant-pill-grid" id="pollutants-overview">
+                        <div class="pollutant-pill">
+                            <span class="p-name">PM2.5</span>
+                            <span class="p-val" id="val-pm25">-- ug/m³</span>
+                        </div>
+                        <div class="pollutant-pill">
+                            <span class="p-name">PM10</span>
+                            <span class="p-val" id="val-pm10">-- ug/m³</span>
+                        </div>
+                        <div class="pollutant-pill">
+                            <span class="p-name">PM Ratio</span>
+                            <span class="p-val" id="val-pmratio">--</span>
+                        </div>
+                        <div class="pollutant-pill">
+                            <span class="p-name">NO2</span>
+                            <span class="p-val" id="val-no2">-- ug/m³</span>
+                        </div>
+                        <div class="pollutant-pill">
+                            <span class="p-name">CO</span>
+                            <span class="p-val" id="val-co">-- ug/m³</span>
+                        </div>
+                        <div class="pollutant-pill">
+                            <span class="p-name">Ozone (O3)</span>
+                            <span class="p-val" id="val-o3">-- ug/m³</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Multi-Model Consensus Card -->
+                <div class="model-consensus-card glass-card">
+                    <h3 class="card-title">Multi-Model AI Ensemble</h3>
+                    <p class="card-subtitle">Simultaneous predictions across distinct machine learning architectures</p>
+                    
+                    <div class="model-breakdown-list">
+                        <div class="model-item">
+                            <div class="model-item-info">
+                                <span class="model-dot rf-dot"></span>
+                                <span class="model-name">Random Forest Regressor</span>
+                            </div>
+                            <span class="model-score" id="rf-score">--</span>
+                        </div>
+
+                        <div class="model-item">
+                            <div class="model-item-info">
+                                <span class="model-dot ridge-dot"></span>
+                                <span class="model-name">Ridge Regression (CV)</span>
+                            </div>
+                            <span class="model-score" id="ridge-score">--</span>
+                        </div>
+
+                        <div class="model-item">
+                            <div class="model-item-info">
+                                <span class="model-dot dl-dot"></span>
+                                <span class="model-name">Deep Learning (PyTorch MLP)</span>
+                            </div>
+                            <span class="model-score" id="dl-score">--</span>
+                        </div>
+                    </div>
+
+                    <div class="consensus-box">
+                        <div class="consensus-label">Ensemble Consensus</div>
+                        <div class="consensus-value" id="consensus-score">-- / 5.0</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3-Day Forecast Cards -->
+            <section class="section-container">
+                <div class="section-header">
+                    <h2>3-Day Air Quality Outlook</h2>
+                    <span class="section-tag">72-Hour Horizon</span>
+                </div>
+
+                <div class="day-cards-grid" id="day-cards-container">
+                    <!-- Dynamic Day 1, Day 2, Day 3 cards injected via app.js -->
+                    <div class="day-card glass-card placeholder-card">Loading Day 1 forecast...</div>
+                    <div class="day-card glass-card placeholder-card">Loading Day 2 forecast...</div>
+                    <div class="day-card glass-card placeholder-card">Loading Day 3 forecast...</div>
+                </div>
+            </section>
+
+            <!-- 72-Hour Multi-Model Trajectory Chart -->
+            <section class="section-container">
+                <div class="section-header">
+                    <h2>72-Hour Multi-Model AQI Trajectory</h2>
+                    <div class="chart-legend-custom">
+                        <span class="legend-item"><span class="legend-dot rf-dot"></span> Random Forest</span>
+                        <span class="legend-item"><span class="legend-dot ridge-dot"></span> Ridge</span>
+                        <span class="legend-item"><span class="legend-dot dl-dot"></span> Deep Learning</span>
+                        <span class="legend-item"><span class="legend-dot consensus-dot"></span> Consensus</span>
+                    </div>
+                </div>
+
+                <div class="chart-wrapper glass-card">
+                    <canvas id="forecastChart" height="110"></canvas>
+                </div>
+            </section>
+
+            <!-- SHAP Explainability & Feature Contribution -->
+            <section class="section-container">
+                <div class="section-header">
+                    <h2>Model Explainability & Feature Importance</h2>
+                    <span class="section-tag">SHAP TreeExplainer</span>
+                </div>
+
+                <div class="explain-grid">
+                    <div class="glass-card explain-chart-card">
+                        <h3 class="card-title">Top Contributing Factors to Current AQI</h3>
+                        <p class="card-subtitle">Real-time SHAP analysis of atmospheric inputs driving prediction</p>
+                        <div class="shap-chart-wrapper">
+                            <canvas id="shapChart" height="150"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="glass-card health-advice-card">
+                        <h3 class="card-title">Health Protection Advisories</h3>
+                        <div class="health-tips" id="health-tips-list">
+                            <div class="tip-item">
+                                <span class="tip-icon">😷</span>
+                                <div>
+                                    <strong>Mask Recommendation:</strong>
+                                    <p id="tip-mask">Wear N95/KN95 respirators outdoors during peak pollution hours.</p>
+                                </div>
+                            </div>
+                            <div class="tip-item">
+                                <span class="tip-icon">🏠</span>
+                                <div>
+                                    <strong>Indoor Air Protection:</strong>
+                                    <p id="tip-indoor">Keep windows closed during early morning and late night inversions.</p>
+                                </div>
+                            </div>
+                            <div class="tip-item">
+                                <span class="tip-icon">🏃</span>
+                                <div>
+                                    <strong>Physical Exercise:</strong>
+                                    <p id="tip-exercise">Avoid strenuous outdoor cardio during peak smog intervals.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- Footer -->
+        <footer class="app-footer">
+            <p>Lahore AQI Intelligence System • Powered by FastAPI, PyTorch, Scikit-Learn & Weights and Biases</p>
+        </footer>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>

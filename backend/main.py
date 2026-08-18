@@ -8,6 +8,8 @@ if PROJECT_ROOT not in sys.path:
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from backend.schemas import (
     EnvironmentalInput,
     PredictionResponse,
@@ -26,7 +28,7 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Enable CORS for all frontend origins (Streamlit, Web, Mobile)
+# Enable CORS for all frontend origins
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -35,8 +37,25 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.get("/", tags=["General"])
-def read_root():
+FRONTEND_DIR = os.path.join(PROJECT_ROOT, "frontend")
+
+# Serve CSS and JS static folders if frontend exists
+if os.path.exists(os.path.join(FRONTEND_DIR, "css")):
+    app.mount("/css", StaticFiles(directory=os.path.join(FRONTEND_DIR, "css")), name="css")
+
+if os.path.exists(os.path.join(FRONTEND_DIR, "js")):
+    app.mount("/js", StaticFiles(directory=os.path.join(FRONTEND_DIR, "js")), name="js")
+
+# Serve Custom Frontend Dashboard at Root URL
+@app.get("/", tags=["UI"])
+def serve_ui():
+    index_file = os.path.join(FRONTEND_DIR, "index.html")
+    if os.path.exists(index_file):
+        return FileResponse(index_file)
+    return {"message": "Frontend index.html not found, please check frontend/ directory."}
+
+@app.get("/api/info", tags=["General"])
+def api_info():
     return {
         "service": "Lahore AQI Prediction & 3-Day Forecasting Service",
         "status": "healthy",
