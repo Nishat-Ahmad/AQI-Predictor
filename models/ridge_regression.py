@@ -9,7 +9,11 @@ from sklearn.pipeline import Pipeline
 from sklearn.metrics import root_mean_squared_error, mean_absolute_error, r2_score
 
 def train_ridge_model():
-    run = wandb.init(project="pearls-aqi-predictor", job_type="training-ridge")
+    os.environ.setdefault("WANDB_SILENT", "true")
+    try:
+        run = wandb.init(project="pearls-aqi-predictor", job_type="training-ridge")
+    except Exception:
+        run = wandb.init(project="pearls-aqi-predictor", job_type="training-ridge", mode="offline")
     print("Downloading historical data from W&B...")
     
     try:
@@ -24,7 +28,7 @@ def train_ridge_model():
     df = pd.read_csv(data_path)
     
     # Prepare features and target
-    X = df.drop(columns=['timestamp', 'aqi_target'], errors='ignore')
+    X = df.drop(columns=['timestamp', 'aqi_target', 'city', 'country'], errors='ignore')
     y = df['aqi_target']
     
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)

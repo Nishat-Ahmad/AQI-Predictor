@@ -9,24 +9,30 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import root_mean_squared_error, mean_absolute_error, r2_score
 
 def train_model():
-    # 1. Initialize W&B and download historical data
-    run = wandb.init(project="pearls-aqi-predictor", job_type="training-random-forest")
-    print("Downloading historical data from W&B...")
-    
+    # 1. Initialize W&B
+    os.environ.setdefault("WANDB_SILENT", "true")
     try:
-        artifact = run.use_artifact('historical_aqi_features:latest')
-        data_dir = artifact.download()
-        data_path = os.path.join(data_dir, "historical_aqi_features.csv")
-    except Exception as e:
-        print(f"Warning: Could not fetch from W&B, checking local data: {e}")
-        project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-        data_path = os.path.join(project_root, "data", "historical_aqi_features.csv")
+        run = wandb.init(project="pearls-aqi-predictor", job_type="training-random-forest")
+    except Exception:
+        run = wandb.init(project="pearls-aqi-predictor", job_type="training-random-forest", mode="offline")
+    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    local_data = os.path.join(project_root, "data", "historical_aqi_features.csv")
+    if os.path.exists(local_data):
+        data_path = local_data
+        print(f"Loading local 1-year global features from: {data_path}")
+    else:
+        try:
+            artifact = run.use_artifact('historical_aqi_features:latest')
+            data_dir = artifact.download()
+            data_path = os.path.join(data_dir, "historical_aqi_features.csv")
+        except Exception as e:
+            raise RuntimeError(f"Could not find historical data: {e}")
         
     df = pd.read_csv(data_path)
     
     # 2. Prepare data for training
     print("Preparing data...")
-    X = df.drop(columns=['timestamp', 'aqi_target'], errors='ignore')
+    X = df.drop(columns=['timestamp', 'aqi_target', 'city', 'country'], errors='ignore')
     y = df['aqi_target']
     feature_names = list(X.columns)
     

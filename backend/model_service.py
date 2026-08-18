@@ -202,14 +202,14 @@ class ModelService:
             cols = self.rf_features or list(input_df.columns)
             aligned = input_df.reindex(columns=cols, fill_value=0.0)
             raw_rf = float(self.rf.predict(aligned)[0])
-            results["random_forest"] = float(map_model_level_to_epa(raw_rf, baseline_epa))
+            results["random_forest"] = float(max(0, min(500, round(raw_rf))))
 
         # 2. Ridge Regression
         if self.ridge is not None:
             cols = self.ridge_features or list(input_df.columns)
             aligned = input_df.reindex(columns=cols, fill_value=0.0)
             raw_ridge = float(self.ridge.predict(aligned)[0])
-            results["ridge_regression"] = float(map_model_to_epa := map_model_level_to_epa(raw_ridge, baseline_epa))
+            results["ridge_regression"] = float(max(0, min(500, round(raw_ridge))))
 
         # 3. Deep Learning (PyTorch)
         if self.dl is not None and TORCH_AVAILABLE:
@@ -222,7 +222,7 @@ class ModelService:
             with torch.no_grad():
                 tensor_x = torch.tensor(scaled, dtype=torch.float32)
                 raw_dl = self.dl(tensor_x).item()
-            results["deep_learning"] = float(map_model_level_to_epa(raw_dl, baseline_epa))
+            results["deep_learning"] = float(max(0, min(500, round(raw_dl))))
 
         vals = [v for v in results.values() if v is not None]
         consensus = round(float(np.mean(vals))) if vals else baseline_epa
