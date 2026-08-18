@@ -9,3 +9,5 @@ torch
 shap
 matplotlib
 scipy
+fastapi
+uvicorn
