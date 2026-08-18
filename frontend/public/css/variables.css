@@ -1,76 +1,83 @@
 /* -------------------------------------------------------------
-   Dynamic Weather Theme Variables
-   - Theme 1: Thunderstorm (Pitch Black with High-Visibility Grey Dot Matrix Grid)
-   - Theme 2: Cloudy / Sunny (Bright, Soft & Airy Dot Grid)
+   Dynamic Atmospheric Theme Variables
+   - Theme 1: Dark Mode (Warm Charcoal & Soft Pastel Palette)
+   - Theme 2: Light Mode (Earthy Cream & Soft Watercolor Pastels)
 -------------------------------------------------------------- */
 
-/* 1. DARK THEME: True Pitch Black & High-Visibility Dot Matrix */
+/* 1. DARK THEME: Refined Midnight Charcoal with Organic Pastel Tones */
 :root, [data-theme="dark"] {
-    --bg-base: #000000;
+    --bg-base: #0d0e12;
     
-    /* High-visibility crisp dot matrix grid */
-    --bg-gradient: radial-gradient(circle at 50% 15%, rgba(56, 189, 248, 0.04) 0%, transparent 70%),
-                   radial-gradient(rgba(255, 255, 255, 0.32) 1.2px, transparent 1.2px);
-    --bg-size: 100% 100%, 26px 26px;
+    /* Warm subtle dot matrix grid */
+    --bg-gradient: radial-gradient(circle at 50% 12%, rgba(125, 211, 252, 0.05) 0%, transparent 65%),
+                   radial-gradient(rgba(255, 255, 255, 0.18) 1.2px, transparent 1.2px);
+    --bg-size: 100% 100%, 28px 28px;
     
-    --bg-card: rgba(14, 14, 14, 0.94);
-    --bg-card-hover: rgba(22, 22, 22, 0.98);
-    --bg-chip: rgba(255, 255, 255, 0.05);
-    --bg-day-card: linear-gradient(180deg, rgba(18, 18, 18, 0.95) 0%, rgba(6, 6, 6, 0.98) 100%);
+    --bg-card: rgba(19, 21, 27, 0.88);
+    --bg-card-hover: rgba(25, 28, 36, 0.95);
+    --bg-chip: rgba(255, 255, 255, 0.04);
+    --bg-day-card: linear-gradient(180deg, rgba(22, 25, 32, 0.92) 0%, rgba(14, 16, 21, 0.96) 100%);
     
-    --border-color: rgba(255, 255, 255, 0.12);
-    --border-hover: rgba(56, 189, 248, 0.45);
-    --shadow-card: 0 16px 40px rgba(0, 0, 0, 0.95);
-    --shadow-card-hover: 0 20px 50px rgba(0, 0, 0, 1);
+    --border-color: rgba(255, 255, 255, 0.08);
+    --border-hover: rgba(125, 211, 252, 0.35);
+    --shadow-card: 0 14px 36px rgba(0, 0, 0, 0.65);
+    --shadow-card-hover: 0 20px 48px rgba(0, 0, 0, 0.8);
 
-    --text-primary: #f1f5f9;
-    --text-secondary: #94a3b8;
-    --text-dim: #64748b;
-    --text-heading: #ffffff;
+    --text-primary: #f3f4f6;
+    --text-secondary: #9ca3af;
+    --text-dim: #6b7280;
+    --text-heading: #fafafa;
 
-    --accent-primary: #38bdf8;       /* Electric Lightning Cyan */
-    --accent-purple: #a855f7;        /* Electric Neon Violet */
-    --accent-sunny: #fbbf24;         /* Amber Lightning Spark */
+    /* Organic Pastel Accents */
+    --accent-primary: #7dd3fc;       /* Pastel Ice Sky */
+    --accent-purple: #c4b5fd;        /* Pastel Soft Lilac */
+    --accent-sunny: #fde047;         /* Pastel Warm Butter */
+    --accent-mint: #86efac;          /* Pastel Sage / Mint */
+    --accent-peach: #fdba74;         /* Pastel Apricot */
+    --accent-rose: #fca5a5;          /* Pastel Soft Coral */
     
-    --glow-top: rgba(56, 189, 248, 0.08);
-    --glow-bottom: rgba(168, 85, 247, 0.06);
+    --glow-top: rgba(125, 211, 252, 0.07);
+    --glow-bottom: rgba(196, 181, 253, 0.06);
 
-    --model-rf: #34d399;
-    --model-ridge: #38bdf8;
-    --model-dl: #c084fc;
-    --model-consensus: #fbbf24;
+    /* Models Pastel Hierarchy */
+    --model-rf: #86efac;             /* Pastel Sage Green */
+    --model-ridge: #7dd3fc;          /* Pastel Sky Blue */
+    --model-dl: #c4b5fd;             /* Pastel Lavender */
+    --model-consensus: #fde047;      /* Pastel Butter Gold */
 }
 
-/* 2. LIGHT THEME: Cloudy / Sunny */
+/* 2. LIGHT THEME: Soft Warm Linen & Pastel Watercolors */
 [data-theme="light"] {
-    --bg-base: #f0f4f8;
+    --bg-base: #f8fafc;
     
-    /* High-visibility soft slate dot grid */
-    --bg-gradient: radial-gradient(circle at 50% 15%, rgba(56, 189, 248, 0.12) 0%, transparent 70%),
-                   radial-gradient(rgba(100, 116, 139, 0.32) 1.2px, transparent 1.2px);
-    --bg-size: 100% 100%, 26px 26px;
+    --bg-gradient: radial-gradient(circle at 50% 12%, rgba(125, 211, 252, 0.12) 0%, transparent 65%),
+                   radial-gradient(rgba(100, 116, 139, 0.22) 1.2px, transparent 1.2px);
+    --bg-size: 100% 100%, 28px 28px;
     
     --bg-card: rgba(255, 255, 255, 0.92);
     --bg-card-hover: rgba(255, 255, 255, 0.98);
     --bg-chip: rgba(241, 245, 249, 0.9);
-    --bg-day-card: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(240, 244, 248, 0.9) 100%);
+    --bg-day-card: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(243, 244, 246, 0.92) 100%);
     
-    --border-color: #cbd5e1;
-    --border-hover: rgba(56, 189, 248, 0.6);
-    --shadow-card: 0 8px 30px rgba(100, 116, 139, 0.12);
-    --shadow-card-hover: 0 14px 38px rgba(56, 189, 248, 0.25);
+    --border-color: #e2e8f0;
+    --border-hover: rgba(125, 211, 252, 0.5);
+    --shadow-card: 0 8px 28px rgba(100, 116, 139, 0.08);
+    --shadow-card-hover: 0 14px 36px rgba(125, 211, 252, 0.2);
 
-    --text-primary: #334155;
-    --text-secondary: #64748b;
-    --text-dim: #94a3b8;
-    --text-heading: #0f172a;
+    --text-primary: #1f2937;
+    --text-secondary: #4b5563;
+    --text-dim: #9ca3af;
+    --text-heading: #111827;
 
-    --accent-primary: #38bdf8;       /* Soft Sky Blue */
-    --accent-purple: #8b5cf6;        /* Soft Violet */
-    --accent-sunny: #fbbf24;         /* Warm Sunlight Yellow */
+    --accent-primary: #0284c7;       /* Refined Cobalt */
+    --accent-purple: #7c3aed;        /* Soft Violet */
+    --accent-sunny: #d97706;         /* Amber Ochre */
+    --accent-mint: #059669;          /* Deep Sage */
+    --accent-peach: #ea580c;         /* Terra Cotta */
+    --accent-rose: #e11d48;          /* Crimson Rose */
     
-    --glow-top: rgba(56, 189, 248, 0.2);
-    --glow-bottom: rgba(251, 191, 36, 0.16);
+    --glow-top: rgba(125, 211, 252, 0.18);
+    --glow-bottom: rgba(253, 224, 71, 0.14);
 
     --model-rf: #059669;
     --model-ridge: #0284c7;

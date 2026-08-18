@@ -23,26 +23,28 @@ export const WEATHER_CLOUD_ICON = `
 `;
 
 export function getAtmosphericHeadline(aqi, pm25) {
-    if (aqi >= 4.5) return "Dense Winter Smog Inversion and Severe Particulate Buildup";
-    if (aqi >= 3.5) return "Moderate to Heavy Smog Layer with Reduced Visibility";
-    if (aqi >= 2.5) return "Hazy Atmospheric Layer with Fine Particulate Suspension";
-    if (aqi >= 1.5) return "Clear Sky Horizon with Mild Background Emissions";
+    if (aqi >= 300) return "Emergency Hazardous Smog Layer and Extreme Particulate Buildup";
+    if (aqi >= 200) return "Dense Smog Layer with Very Poor Visibility and Heavy Inversion";
+    if (aqi >= 150) return "Unhealthy Particulate Suspension with Pronounced Smog Layer";
+    if (aqi >= 100) return "Hazy Atmospheric Layer with Fine Particulate Suspension";
+    if (aqi >= 50) return "Moderate Atmospheric Dispersion with Light Background Haze";
     return "Clean Atmospheric Dispersion with Optimal Air Quality";
 }
 
 export function getHealthAdvisory(aqi) {
-    if (aqi >= 4.5) return "Hazardous Smog Conditions: Avoid all outdoor physical activity.";
-    if (aqi >= 3.5) return "Unhealthy Air Pollution: Wear N95 respirators outdoors.";
-    if (aqi >= 2.5) return "Moderate Air Quality: Sensitive individuals should limit prolonged outdoor exertion.";
-    if (aqi >= 1.5) return "Fair Air Quality: Acceptable conditions with minimal health risk.";
-    return "Satisfactory Air Quality: Little to no health risk for general population.";
+    if (aqi >= 300) return "Hazardous Air Quality: Avoid all outdoor physical activity. Keep indoor air purifiers running.";
+    if (aqi >= 200) return "Very Unhealthy Air Quality: Everyone should avoid outdoor exertion; wear N95 respirators.";
+    if (aqi >= 150) return "Unhealthy Air: Active children and adults, and people with respiratory disease should avoid outdoor exertion.";
+    if (aqi >= 100) return "Unhealthy for Sensitive Groups: People with respiratory issues should limit prolonged outdoor exertion.";
+    if (aqi >= 50) return "Moderate Air Quality: Air quality is acceptable for most; unusually sensitive individuals should take care.";
+    return "Good Air Quality: Air quality is satisfactory and poses little or no risk.";
 }
 
 export function getTrendHint(hourly) {
     if (hourly && hourly.length >= 24) {
         const next24 = hourly.slice(0, 24);
         const peak = next24.reduce((max, h) => h.consensus_aqi > max.consensus_aqi ? h : max, next24[0]);
-        return `Next 24h trend: Smog intensity expected to peak at AQI ${Number(peak.consensus_aqi).toFixed(1)} around ${peak.hour}:00.`;
+        return `Next 24h trend: Air pollution expected to peak at AQI ${Math.round(peak.consensus_aqi)} around ${peak.hour}:00.`;
     }
     return "Next 24h trend: Regular diurnal cycles with higher concentrations during early morning hours.";
 }

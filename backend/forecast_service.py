@@ -122,10 +122,10 @@ def generate_3day_forecast(lat: float = DEFAULT_LAT, lon: float = DEFAULT_LON, c
 
     for d in unique_dates:
         day_df = df[df["date"] == d]
-        avg_aqi = round(float(day_df["consensus_aqi"].mean()), 2)
+        avg_aqi = float(round(float(day_df["consensus_aqi"].mean())))
         peak_idx = day_df["consensus_aqi"].idxmax()
         peak_row = day_df.loc[peak_idx]
-        peak_aqi = round(float(peak_row["consensus_aqi"]), 2)
+        peak_aqi = float(round(float(peak_row["consensus_aqi"])))
         peak_hour = f"{int(peak_row['hour']):02d}:00"
         day_name = str(day_df.iloc[0]["day_name"])
 

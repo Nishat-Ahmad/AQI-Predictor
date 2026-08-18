@@ -14,10 +14,10 @@ export function renderTrajectoryChart(hourly, activeFilter = "all") {
         return `${parts[0].slice(5)} ${parts[1]}`;
     });
 
-    const rfData = hourly.map(h => h.rf_aqi);
-    const ridgeData = hourly.map(h => h.ridge_aqi);
-    const dlData = hourly.map(h => h.dl_aqi);
-    const consensusData = hourly.map(h => h.consensus_aqi);
+    const rfData = hourly.map(h => Math.round(Number(h.rf_aqi || 0)));
+    const ridgeData = hourly.map(h => Math.round(Number(h.ridge_aqi || 0)));
+    const dlData = hourly.map(h => Math.round(Number(h.dl_aqi || 0)));
+    const consensusData = hourly.map(h => Math.round(Number(h.consensus_aqi || 0)));
 
     const datasets = [];
 
@@ -97,7 +97,10 @@ export function renderTrajectoryChart(hourly, activeFilter = "all") {
                     bodyColor: isDark ? "#94a3b8" : "#334155",
                     borderColor: isDark ? "rgba(255, 255, 255, 0.12)" : "rgba(0, 0, 0, 0.1)",
                     borderWidth: 1,
-                    padding: 10
+                    padding: 10,
+                    callbacks: {
+                        label: (c) => ` ${c.dataset.label}: ${c.raw} AQI`
+                    }
                 }
             },
             scales: {
@@ -106,10 +109,10 @@ export function renderTrajectoryChart(hourly, activeFilter = "all") {
                     ticks: { color: tickColor, maxTicksLimit: 12 }
                 },
                 y: {
-                    min: 1,
-                    max: 5,
+                    beginAtZero: true,
+                    suggestedMax: 250,
                     grid: { color: gridColor },
-                    ticks: { color: tickColor, stepSize: 1 }
+                    ticks: { color: tickColor }
                 }
             }
         }
@@ -124,12 +127,12 @@ export function renderShapChart(current) {
 
     const features = ["PM2.5", "PM Ratio", "CO", "NO2", "Ozone", "AQI Delta"];
     const impacts = [
-        +(current.pm2_5 * 0.035).toFixed(3),
-        +(current.pm_ratio * 0.65).toFixed(3),
-        +(current.co * 0.0008).toFixed(3),
-        +(current.no2 * 0.015).toFixed(3),
-        -(current.o3 * 0.008).toFixed(3),
-        +(current.aqi_change_rate * 0.25).toFixed(3)
+        +(current.pm2_5 * 0.85).toFixed(1),
+        +(current.pm_ratio * 15.0).toFixed(1),
+        +(current.co * 0.02).toFixed(1),
+        +(current.no2 * 0.45).toFixed(1),
+        -(current.o3 * 0.25).toFixed(1),
+        +(current.aqi_change_rate * 5.0).toFixed(1)
     ];
 
     if (shapChart) {
@@ -154,7 +157,7 @@ export function renderShapChart(current) {
                 legend: { display: false },
                 tooltip: {
                     callbacks: {
-                        label: (ctx) => `Impact on AQI: ${ctx.raw >= 0 ? "+" : ""}${ctx.raw}`
+                        label: (ctx) => `Impact on AQI: ${ctx.raw >= 0 ? "+" : ""}${ctx.raw} AQI`
                     }
                 }
             },

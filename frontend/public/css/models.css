@@ -3,7 +3,8 @@
 -------------------------------------------------------------- */
 
 .widget-title {
-    font-family: 'Outfit', sans-serif;
+    font-family: 'DM Sans', sans-serif;
+    letter-spacing: -0.025em;
     font-size: 1.1rem;
     font-weight: 700;
     color: var(--text-heading);
@@ -49,7 +50,8 @@
 }
 
 .m-score {
-    font-family: 'Outfit', sans-serif;
+    font-family: 'DM Sans', sans-serif;
+    letter-spacing: -0.025em;
     font-size: 1.05rem;
     font-weight: 700;
     color: var(--text-heading);
@@ -82,7 +84,8 @@
 }
 
 .cf-score {
-    font-family: 'Outfit', sans-serif;
+    font-family: 'DM Sans', sans-serif;
+    letter-spacing: -0.025em;
     font-size: 1.25rem;
     font-weight: 800;
     color: var(--text-heading);

@@ -46,12 +46,12 @@ export function getFallbackData(city = "London, United Kingdom", lat = 51.5074, 
             co: 780.0,
             o3: 44.0,
             aqi_change_rate: 0.0,
-            rf_aqi: 3.2,
-            ridge_aqi: 3.4,
-            dl_aqi: 3.3,
-            consensus_aqi: 3.3,
-            severity_badge: "Moderate (3/5)",
-            severity_color: "#f59e0b"
+            rf_aqi: 105,
+            ridge_aqi: 112,
+            dl_aqi: 108,
+            consensus_aqi: 108,
+            severity_badge: "Unhealthy for Sensitive Groups (101-150)",
+            severity_color: "#f97316"
         });
     }
     return {
@@ -60,9 +60,9 @@ export function getFallbackData(city = "London, United Kingdom", lat = 51.5074, 
         lon: lon,
         hourly_forecast: mockHourly,
         daily_summaries: [
-            { day_name: "Today", date: "2026-08-18", avg_aqi: 3.3, peak_aqi: 3.8, peak_hour: "21:00", dominant_pollutant: "PM2.5", severity_badge: "Moderate (3/5)", severity_color: "#f59e0b", health_advisory: "Air quality is acceptable for most people." },
-            { day_name: "Tomorrow", date: "2026-08-19", avg_aqi: 3.5, peak_aqi: 4.0, peak_hour: "03:00", dominant_pollutant: "PM2.5", severity_badge: "Poor / Unhealthy (4/5)", severity_color: "#f97316", health_advisory: "Sensitive groups should wear masks." },
-            { day_name: "Day After", date: "2026-08-20", avg_aqi: 3.4, peak_aqi: 3.9, peak_hour: "04:00", dominant_pollutant: "PM2.5", severity_badge: "Moderate (3/5)", severity_color: "#f59e0b", health_advisory: "Keep windows closed during peak smog." }
+            { day_name: "Today", date: "2026-08-18", avg_aqi: 108, peak_aqi: 135, peak_hour: "21:00", dominant_pollutant: "PM2.5", severity_badge: "Unhealthy for Sensitive Groups (101-150)", severity_color: "#f97316", health_advisory: "Sensitive groups should reduce prolonged outdoor exertion." },
+            { day_name: "Tomorrow", date: "2026-08-19", avg_aqi: 122, peak_aqi: 158, peak_hour: "03:00", dominant_pollutant: "PM2.5", severity_badge: "Unhealthy (151-200)", severity_color: "#ef4444", health_advisory: "Wear N95 respirators during early morning hours." },
+            { day_name: "Day After", date: "2026-08-20", avg_aqi: 95, peak_aqi: 120, peak_hour: "04:00", dominant_pollutant: "PM2.5", severity_badge: "Moderate (51-100)", severity_color: "#eab308", health_advisory: "Acceptable air quality with mild background haze." }
         ]
     };
 }
