@@ -3,11 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lahore Weather and Air Quality Intelligence</title>
+    <title>AQI Predictor</title>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Leaflet.js CSS & JS CDN -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="css/style.css">
@@ -29,40 +32,20 @@
                     </svg>
                 </div>
                 <div>
-                    <h1 class="brand-heading">Lahore Atmosphere and AQI</h1>
-                    <p class="brand-subline">3-Day Air Quality and Weather Forecast (72 Hours)</p>
+                    <h1 class="brand-heading">AQI Predictor</h1>
+                    <p class="brand-subline">3-Day Air Quality & Weather Forecast (72 Hours)</p>
                 </div>
             </div>
 
             <div class="header-controls">
-                <div class="station-chip">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
-                        <circle cx="12" cy="10" r="3"/>
-                    </svg>
-                    <span>Lahore, Punjab</span>
-                </div>
-                
-                <div class="backend-pill" id="api-status">
-                    <span id="status-label">FastAPI: Live</span>
-                </div>
-
-                <!-- Theme Toggle Button (Cloudy/Sunny Light vs Thunderstorm Dark) -->
-                <button class="theme-toggle-btn" id="btn-theme-toggle" title="Toggle Weather Theme">
+                <!-- Theme Toggle Switch Button (Light vs Dark) -->
+                <button class="theme-toggle-btn" id="btn-theme-toggle" aria-label="Toggle Weather Theme" title="Toggle Weather Theme">
                     <span class="theme-icon-slot" id="theme-icon-slot">
-                        <!-- Default Lightning Icon (Dark) -->
-                        <svg class="icon-dark" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                        <!-- Default Moon Icon (Dark) -->
+                        <svg class="icon-dark" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
                         </svg>
                     </span>
-                    <span class="theme-label" id="theme-label">Thunderstorm</span>
-                </button>
-
-                <button class="refresh-btn" id="btn-refresh" title="Update atmospheric readings">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
-                    </svg>
-                    <span>Refresh</span>
                 </button>
             </div>
         </header>
@@ -70,6 +53,33 @@
         <!-- Main Dashboard -->
         <main class="dashboard-grid">
             
+            <!-- Global Capitals Interactive Map Section -->
+            <section class="frost-card map-card-container">
+                <div class="map-header-bar">
+                    <div class="map-title-group">
+                        <div class="station-chip">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"/>
+                                <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>
+                                <path d="M2 12h20"/>
+                            </svg>
+                            <span>Interactive Global Capitals Map</span>
+                        </div>
+                        <div class="map-city-pill" id="map-selected-city">Lahore, Pakistan</div>
+                    </div>
+
+                    <div class="map-controls-group">
+                        <label for="capital-select" style="font-size: 0.76rem; color: var(--text-dim);">Jump to Capital:</label>
+                        <select id="capital-select" class="capital-search-select" title="Select a world capital"></select>
+                    </div>
+                </div>
+
+                <!-- Leaflet Map Canvas Container -->
+                <div class="map-canvas-wrapper">
+                    <div id="world-map"></div>
+                </div>
+            </section>
+
             <!-- Hero Weather & AQI Stage -->
             <section class="hero-stage">
                 

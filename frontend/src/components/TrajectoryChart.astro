@@ -1,0 +1,27 @@
+---
+// 72-Hour Multi-Model Trajectory Curve Component (Chart.js)
+---
+
+<section class="content-section">
+    <div class="section-topbar">
+        <div>
+            <h3 class="section-heading">72-Hour Multi-Model AQI Trajectory</h3>
+            <p class="section-subtext">Hourly comparison between Random Forest, Ridge Regression, Deep Learning, and Consensus</p>
+        </div>
+        
+        <!-- Algorithm Filters -->
+        <div class="filter-controls">
+            <button class="filter-btn active" data-filter="all">All Models</button>
+            <button class="filter-btn" data-filter="consensus">Consensus</button>
+            <button class="filter-btn" data-filter="rf">Random Forest</button>
+            <button class="filter-btn" data-filter="ridge">Ridge</button>
+            <button class="filter-btn" data-filter="dl">Deep Learning</button>
+        </div>
+    </div>
+
+    <div class="frost-card chart-glass-card">
+        <div class="chart-canvas-container">
+            <canvas id="forecastChart"></canvas>
+        </div>
+    </div>
+</section>

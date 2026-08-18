@@ -1,0 +1,27 @@
+---
+// Navigation bar component with brand badge, API status and Theme Toggle
+---
+
+<header class="glass-navbar">
+    <div class="brand-group">
+        <div class="weather-icon-badge" id="brand-badge">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>
+            </svg>
+        </div>
+        <div>
+            <h1 class="brand-heading">AQI Predictor</h1>
+            <p class="brand-subline">3-Day Air Quality & Weather Forecast (72 Hours)</p>
+        </div>
+    </div>
+
+    <div class="header-controls">
+        <button class="theme-toggle-btn" id="btn-theme-toggle" aria-label="Toggle Weather Theme" title="Toggle Weather Theme">
+            <span class="theme-icon-slot" id="theme-icon-slot">
+                <svg class="icon-dark" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
+                </svg>
+            </span>
+        </button>
+    </div>
+</header>

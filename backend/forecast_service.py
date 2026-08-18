@@ -8,32 +8,31 @@ from backend.schemas import HourlyForecastPoint, DaySummary, ForecastResponse
 
 # Load environment
 API_KEY = os.getenv("OPENWEATHER_API_KEY")
-LAT = float(os.getenv("CITY_LAT", "31.5204"))
-LON = float(os.getenv("CITY_LON", "74.3587"))
-CITY_NAME = "Lahore, Pakistan"
+DEFAULT_LAT = float(os.getenv("CITY_LAT", "31.5204"))
+DEFAULT_LON = float(os.getenv("CITY_LON", "74.3587"))
+DEFAULT_CITY = "Lahore, Pakistan"
 
-def fetch_openweather_forecast():
-    """Fetches real-time 5-day hourly air pollution forecast from OpenWeather."""
+def fetch_openweather_forecast(lat: float, lon: float):
+    """Fetches real-time 5-day hourly air pollution forecast from OpenWeather for any global coordinates."""
     if not API_KEY:
         return None
-    url = f"http://api.openweathermap.org/data/2.5/air_pollution/forecast?lat={LAT}&lon={LON}&appid={API_KEY}"
+    url = f"http://api.openweathermap.org/data/2.5/air_pollution/forecast?lat={lat}&lon={lon}&appid={API_KEY}"
     try:
         resp = requests.get(url, timeout=10)
         if resp.status_code == 200:
             return resp.json().get("list", [])
     except Exception as e:
-        print(f"Warning: OpenWeather forecast API failed: {e}")
+        print(f"Warning: OpenWeather forecast API failed for ({lat}, {lon}): {e}")
     return None
 
 def generate_fallback_forecast():
-    """Generates a realistic 72-hour synthetic forecast for Lahore based on seasonal diurnal curves."""
+    """Generates a realistic 72-hour synthetic forecast based on diurnal atmospheric curves."""
     items = []
     base_time = datetime.now()
     for h in range(72):
         t = base_time + timedelta(hours=h)
-        # Night / morning smog spike simulation
         hour = t.hour
-        diurnal_factor = 1.3 if (hour >= 20 or hour <= 7) else 0.85
+        diurnal_factor = 1.25 if (hour >= 20 or hour <= 7) else 0.85
         items.append({
             "dt": int(t.timestamp()),
             "main": {"aqi": 3},
@@ -47,9 +46,9 @@ def generate_fallback_forecast():
         })
     return items
 
-def generate_3day_forecast() -> ForecastResponse:
-    """Generates 72-hour multi-model predictions and daily aggregations."""
-    raw_list = fetch_openweather_forecast()
+def generate_3day_forecast(lat: float = DEFAULT_LAT, lon: float = DEFAULT_LON, city: str = DEFAULT_CITY) -> ForecastResponse:
+    """Generates 72-hour multi-model predictions and daily aggregations for any global capital or coordinate."""
+    raw_list = fetch_openweather_forecast(lat, lon)
     if not raw_list or len(raw_list) < 24:
         raw_list = generate_fallback_forecast()
 
@@ -130,7 +129,7 @@ def generate_3day_forecast() -> ForecastResponse:
         peak_hour = f"{int(peak_row['hour']):02d}:00"
         day_name = str(day_df.iloc[0]["day_name"])
 
-        # Determine dominant pollutant (PM2.5 vs PM10 vs CO vs Ozone)
+        # Determine dominant pollutant
         if day_df["pm2_5"].mean() > 35:
             dom = "PM2.5 (Fine Particulates)"
         elif day_df["pm10"].mean() > 60:
@@ -155,9 +154,9 @@ def generate_3day_forecast() -> ForecastResponse:
         ))
 
     return ForecastResponse(
-        city=CITY_NAME,
-        lat=LAT,
-        lon=LON,
+        city=city,
+        lat=lat,
+        lon=lon,
         total_hours=len(hourly_points),
         daily_summaries=daily_summaries,
         hourly_forecast=hourly_points

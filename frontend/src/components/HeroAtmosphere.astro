@@ -1,0 +1,80 @@
+---
+// Hero Atmosphere AQI Meter & 6-Pollutant Barometer Component
+---
+
+<div class="frost-card hero-main-card">
+    <div class="card-super-header">
+        <div class="condition-group">
+            <span class="condition-tag" id="condition-summary">Atmospheric Conditions: Haze and Particulates</span>
+        </div>
+        <div class="live-clock" id="current-timestamp">Live Atmosphere</div>
+    </div>
+
+    <!-- Center AQI Gauge -->
+    <div class="hero-weather-center">
+        <div class="aqi-meter-group">
+            <span class="aqi-digit" id="current-aqi-val">--</span>
+            <div class="aqi-scale-tag">
+                <span class="scale-max">/ 5.0</span>
+                <span class="scale-sub">OpenWeather AQI</span>
+            </div>
+        </div>
+
+        <div class="weather-intel">
+            <div class="severity-bubble" id="current-aqi-badge">Calculating AQI...</div>
+            <h2 class="advisory-title" id="current-aqi-advisory">Loading meteorological atmospheric telemetry...</h2>
+            <p class="forecast-hint" id="forecast-hint">Synthesizing 72-hour OpenWeather projection curves...</p>
+        </div>
+    </div>
+
+    <!-- 6-Chip Atmospheric Pollutant Barometer -->
+    <div class="pollutant-barometer">
+        <div class="barometer-item">
+            <div class="b-header">
+                <span class="b-label">PM2.5</span>
+                <span class="b-type">Fine</span>
+            </div>
+            <span class="b-val" id="val-pm25">-- ug/m3</span>
+        </div>
+
+        <div class="barometer-item">
+            <div class="b-header">
+                <span class="b-label">PM10</span>
+                <span class="b-type">Coarse</span>
+            </div>
+            <span class="b-val" id="val-pm10">-- ug/m3</span>
+        </div>
+
+        <div class="barometer-item">
+            <div class="b-header">
+                <span class="b-label">PM Ratio</span>
+                <span class="b-type">Fine/Coarse</span>
+            </div>
+            <span class="b-val" id="val-pmratio">--</span>
+        </div>
+
+        <div class="barometer-item">
+            <div class="b-header">
+                <span class="b-label">NO2</span>
+                <span class="b-type">Oxide</span>
+            </div>
+            <span class="b-val" id="val-no2">-- ug/m3</span>
+        </div>
+
+        <div class="barometer-item">
+            <div class="b-header">
+                <span class="b-label">Ozone</span>
+                <span class="b-type">O3</span>
+            </div>
+            <span class="b-val" id="val-o3">-- ug/m3</span>
+        </div>
+
+        <div class="barometer-item">
+            <div class="b-header">
+                <span class="b-label">CO</span>
+                <span class="b-type">Carbon</span>
+            </div>
+            <span class="b-val" id="val-co">-- ug/m3</span>
+        </div>
+    </div>
+</div>

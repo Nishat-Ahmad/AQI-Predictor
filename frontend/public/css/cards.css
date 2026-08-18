@@ -1,0 +1,144 @@
+/* -------------------------------------------------------------
+   Cards: Frosted Glass Surfaces, Hero Stage & 3-Day Forecast Cards
+-------------------------------------------------------------- */
+
+.frost-card {
+    background: var(--bg-card);
+    backdrop-filter: blur(28px);
+    border: 1px solid var(--border-color);
+    border-radius: 18px;
+    padding: 1.5rem;
+    box-shadow: var(--shadow-card);
+}
+
+.frost-card:hover {
+    border-color: var(--border-hover);
+    box-shadow: var(--shadow-card-hover);
+}
+
+.card-super-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.9rem;
+}
+
+/* Hero Weather Center Stage */
+.hero-weather-center {
+    display: flex;
+    align-items: center;
+    gap: 1.75rem;
+    margin-bottom: 1.4rem;
+}
+
+.aqi-meter-group {
+    display: flex;
+    align-items: baseline;
+    gap: 0.35rem;
+}
+
+.aqi-digit {
+    font-family: 'Outfit', sans-serif;
+    font-size: 4.2rem;
+    font-weight: 800;
+    line-height: 1;
+    color: var(--text-heading);
+}
+
+.aqi-scale-tag {
+    display: flex;
+    flex-direction: column;
+}
+
+.scale-max {
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+.scale-sub {
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.weather-intel {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.advisory-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.35;
+}
+
+.forecast-hint {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+/* 3-Day Forecast Day Cards */
+.day-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background: var(--bg-day-card);
+}
+
+.day-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.75rem;
+}
+
+.d-dayname {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text-heading);
+}
+
+.d-date {
+    font-size: 0.72rem;
+    color: var(--text-dim);
+}
+
+.day-weather-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: rgba(56, 189, 248, 0.12);
+    color: var(--accent-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.day-aqi-stat {
+    font-family: 'Outfit', sans-serif;
+    font-size: 2.2rem;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 0.45rem;
+}
+
+.day-stats-list {
+    border-top: 1px solid var(--border-color);
+    padding-top: 0.75rem;
+    font-size: 0.78rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    color: var(--text-secondary);
+}
+
+.day-stats-list span {
+    color: var(--text-primary);
+    font-weight: 600;
+}

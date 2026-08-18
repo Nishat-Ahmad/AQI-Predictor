@@ -1,0 +1,163 @@
+/* -------------------------------------------------------------
+   Interactive Map: Leaflet World Map, Custom Pins & Selector
+-------------------------------------------------------------- */
+
+.map-card-container {
+    margin-bottom: 1.75rem;
+    padding: 1.25rem;
+}
+
+.map-header-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.9rem;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.map-title-group {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.map-city-pill {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.3rem 0.75rem;
+    background: var(--bg-chip);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--accent-primary);
+}
+
+.map-controls-group {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.capital-search-select {
+    padding: 0.45rem 0.9rem;
+    border-radius: 10px;
+    background: var(--bg-chip);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    outline: none;
+}
+
+.capital-search-select:focus {
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+}
+
+.capital-search-select optgroup {
+    background: var(--bg-base);
+    color: var(--text-dim);
+    font-weight: 700;
+}
+
+.capital-search-select option {
+    background: var(--bg-card);
+    color: var(--text-primary);
+}
+
+/* Map Canvas Container */
+.map-canvas-wrapper {
+    height: 480px;
+    border-radius: 14px;
+    overflow: hidden;
+    position: relative;
+    border: 1px solid var(--border-color);
+}
+
+#world-map {
+    width: 100%;
+    height: 100%;
+    background: #000000;
+}
+
+/* Custom Marker Pins */
+.custom-map-pin-container {
+    background: transparent;
+    border: none;
+}
+
+.map-pulse-marker {
+    position: relative;
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+.marker-core {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--accent-primary);
+    border: 2px solid #ffffff;
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    box-shadow: 0 0 8px rgba(56, 189, 248, 0.8);
+    transition: transform 0.2s ease, background-color 0.3s ease;
+}
+
+.map-pulse-marker.active-pin .marker-core {
+    background: var(--accent-sunny);
+    width: 14px;
+    height: 14px;
+    top: 1px;
+    left: 1px;
+    box-shadow: 0 0 12px rgba(251, 191, 36, 1);
+}
+
+.marker-pulse {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    top: -4px;
+    left: -4px;
+    border-radius: 50%;
+    background: rgba(56, 189, 248, 0.35);
+    animation: markerPulse 2s infinite;
+    pointer-events: none;
+}
+
+.map-pulse-marker.active-pin .marker-pulse {
+    background: rgba(251, 191, 36, 0.45);
+    animation: markerPulse 1.2s infinite;
+}
+
+@keyframes markerPulse {
+    0% {
+        transform: scale(0.6);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1.8);
+        opacity: 0;
+    }
+}
+
+/* Tooltip */
+.capital-map-tooltip {
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--text-primary) !important;
+    border-radius: 8px !important;
+    font-size: 0.78rem !important;
+    box-shadow: var(--shadow-card) !important;
+    padding: 0.3rem 0.6rem !important;
+}
+
+.capital-map-tooltip::before {
+    display: none !important;
+}

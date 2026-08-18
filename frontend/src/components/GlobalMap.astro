@@ -1,0 +1,29 @@
+---
+// Interactive World Capitals Map Component (Leaflet.js)
+---
+
+<section class="frost-card map-card-container">
+    <div class="map-header-bar">
+        <div class="map-title-group">
+            <div class="station-chip">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>
+                    <path d="M2 12h20"/>
+                </svg>
+                <span>Interactive Global Capitals Map</span>
+            </div>
+            <div class="map-city-pill" id="map-selected-city">Lahore, Pakistan</div>
+        </div>
+
+        <div class="map-controls-group">
+            <label for="capital-select" style="font-size: 0.76rem; color: var(--text-dim);">Jump to Capital:</label>
+            <select id="capital-select" class="capital-search-select" title="Select a world capital"></select>
+        </div>
+    </div>
+
+    <!-- Leaflet Map Canvas Container -->
+    <div class="map-canvas-wrapper">
+        <div id="world-map"></div>
+    </div>
+</section>

@@ -1,0 +1,34 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navbar from '../components/Navbar.astro';
+import GlobalMap from '../components/GlobalMap.astro';
+import HeroAtmosphere from '../components/HeroAtmosphere.astro';
+import ModelConsensus from '../components/ModelConsensus.astro';
+import ForecastCards from '../components/ForecastCards.astro';
+import TrajectoryChart from '../components/TrajectoryChart.astro';
+import ShapInsights from '../components/ShapInsights.astro';
+---
+
+<Layout title="AQI Predictor">
+    <Navbar />
+
+    <main class="dashboard-grid">
+        <!-- Interactive Global Capitals Map -->
+        <GlobalMap />
+
+        <!-- Hero Weather Stage -->
+        <section class="hero-stage">
+            <HeroAtmosphere />
+            <ModelConsensus />
+        </section>
+
+        <!-- 3-Day Forecast Outlook -->
+        <ForecastCards />
+
+        <!-- 72-Hour Multi-Model Trajectory -->
+        <TrajectoryChart />
+
+        <!-- Explainable AI & Advisories -->
+        <ShapInsights />
+    </main>
+</Layout>

@@ -97,10 +97,14 @@ def predict_aqi(payload: EnvironmentalInput):
     )
 
 @app.get("/forecast/3day", response_model=ForecastResponse, tags=["Forecasting"])
-def get_3day_forecast():
-    """Fetches OpenWeather future pollution data, executes 72-hour multi-model inference, and returns daily summaries."""
+def get_3day_forecast(
+    lat: float = 31.5204,
+    lon: float = 74.3587,
+    city: str = "Lahore, Pakistan"
+):
+    """Fetches OpenWeather future pollution data for any global capital, executes 72-hour multi-model inference, and returns daily summaries."""
     try:
-        forecast_data = generate_3day_forecast()
+        forecast_data = generate_3day_forecast(lat=lat, lon=lon, city=city)
         return forecast_data
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to generate 3-day forecast: {str(e)}")

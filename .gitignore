@@ -3,6 +3,14 @@
 wandb/
 **/wandb/
 
+# Node & Astro
+node_modules/
+**/node_modules/
+dist/
+**/dist/
+.astro/
+**/.astro/
+
 # Data & Artifacts (ignore all nested folders except .gitkeep)
 data/**
 !data/.gitkeep

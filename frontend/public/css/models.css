@@ -1,0 +1,89 @@
+/* -------------------------------------------------------------
+   Models: Multi-Model AI Ensemble Breakdown & Consensus Tiles
+-------------------------------------------------------------- */
+
+.widget-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-heading);
+}
+
+.widget-sub {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    margin-bottom: 1.1rem;
+}
+
+.model-forecast-tiles {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    margin-bottom: 1.1rem;
+}
+
+.model-tile {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.65rem 0.85rem;
+    background: var(--bg-chip);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+}
+
+.m-left {
+    display: flex;
+    flex-direction: column;
+}
+
+.m-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-heading);
+}
+
+.m-desc {
+    font-size: 0.68rem;
+    color: var(--text-dim);
+}
+
+.m-score {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-heading);
+}
+
+.consensus-footer {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.14), rgba(249, 115, 22, 0.08));
+    border: 1px solid rgba(245, 158, 11, 0.35);
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.cf-left {
+    display: flex;
+    flex-direction: column;
+}
+
+.cf-tag {
+    font-size: 0.84rem;
+    font-weight: 700;
+    color: var(--accent-sunny);
+}
+
+.cf-sub {
+    font-size: 0.68rem;
+    color: var(--text-dim);
+}
+
+.cf-score {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--text-heading);
+}
