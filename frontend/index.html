@@ -1,44 +1,65 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lahore AQI Forecast & Intelligence Platform</title>
+    <title>Lahore Weather and Air Quality Intelligence</title>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <!-- Background Gradient Ambient Glows -->
-    <div class="ambient-glow glow-1"></div>
-    <div class="ambient-glow glow-2"></div>
+    <!-- Ambient Dynamic Weather Glows -->
+    <div class="weather-ambient glow-primary"></div>
+    <div class="weather-ambient glow-secondary"></div>
+    <div class="weather-ambient glow-accent"></div>
 
-    <div class="app-container">
-        <!-- Navigation Header -->
-        <header class="navbar">
-            <div class="nav-brand">
-                <div class="brand-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <div class="app-viewport">
+        <!-- Floating Glass Header -->
+        <header class="glass-navbar">
+            <div class="brand-group">
+                <div class="weather-icon-badge" id="brand-badge">
+                    <!-- Dynamic Theme Icon in Brand -->
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>
                     </svg>
                 </div>
-                <div class="brand-text">
-                    <h1>Lahore AQI Intelligence</h1>
-                    <span class="brand-sub">Multi-Model AI 3-Day Air Quality Forecast</span>
+                <div>
+                    <h1 class="brand-heading">Lahore Atmosphere and AQI</h1>
+                    <p class="brand-subline">3-Day Air Quality and Weather Forecast (72 Hours)</p>
                 </div>
             </div>
 
-            <div class="nav-controls">
-                <div class="status-pill" id="api-status">
-                    <span class="status-dot"></span>
-                    <span class="status-text">Connecting to API...</span>
+            <div class="header-controls">
+                <div class="station-chip">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+                        <circle cx="12" cy="10" r="3"/>
+                    </svg>
+                    <span>Lahore, Punjab</span>
                 </div>
-                <button class="btn-refresh" id="btn-refresh" title="Refresh live forecast">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                
+                <div class="backend-pill" id="api-status">
+                    <span id="status-label">FastAPI: Live</span>
+                </div>
+
+                <!-- Theme Toggle Button (Cloudy/Sunny Light vs Thunderstorm Dark) -->
+                <button class="theme-toggle-btn" id="btn-theme-toggle" title="Toggle Weather Theme">
+                    <span class="theme-icon-slot" id="theme-icon-slot">
+                        <!-- Default Lightning Icon (Dark) -->
+                        <svg class="icon-dark" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                        </svg>
+                    </span>
+                    <span class="theme-label" id="theme-label">Thunderstorm</span>
+                </button>
+
+                <button class="refresh-btn" id="btn-refresh" title="Update atmospheric readings">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
                     </svg>
                     <span>Refresh</span>
@@ -46,165 +67,242 @@
             </div>
         </header>
 
-        <!-- Main Content -->
-        <main class="dashboard-content">
+        <!-- Main Dashboard -->
+        <main class="dashboard-grid">
             
-            <!-- Hero Summary Grid -->
-            <section class="hero-section">
-                <!-- Current Live AQI Card -->
-                <div class="hero-card glass-card" id="current-aqi-card">
-                    <div class="card-header-compact">
-                        <span class="badge-location">Lahore, Pakistan (31.52° N, 74.35° E)</span>
-                        <span class="timestamp-label" id="current-timestamp">Updated: Just now</span>
+            <!-- Hero Weather & AQI Stage -->
+            <section class="hero-stage">
+                
+                <!-- Main Atmosphere Live Card -->
+                <div class="frost-card hero-main-card">
+                    <div class="card-super-header">
+                        <div class="condition-group">
+                            <span class="condition-tag" id="condition-summary">Atmospheric Conditions: Haze and Particulates</span>
+                        </div>
+                        <span class="live-clock" id="current-timestamp">Updated: Live</span>
                     </div>
 
-                    <div class="hero-body">
-                        <div class="aqi-display">
-                            <span class="aqi-value" id="current-aqi-val">--</span>
-                            <span class="aqi-scale">/ 5.0</span>
+                    <div class="hero-weather-center">
+                        <div class="aqi-meter-group">
+                            <div class="aqi-ring-aura">
+                                <span class="aqi-digit" id="current-aqi-val">--</span>
+                            </div>
+                            <div class="aqi-scale-tag">
+                                <span class="scale-max">/ 5.0</span>
+                                <span class="scale-sub">AQI Index</span>
+                            </div>
                         </div>
-                        <div class="aqi-meta">
-                            <div class="aqi-badge-status" id="current-aqi-badge">Calculating...</div>
-                            <p class="aqi-description" id="current-aqi-advisory">Loading live atmospheric data...</p>
+
+                        <div class="weather-intel">
+                            <div class="severity-bubble" id="current-aqi-badge">Calculating...</div>
+                            <h2 class="advisory-title" id="current-aqi-advisory">Synthesizing real-time atmospheric projections...</h2>
+                            <p class="forecast-hint" id="forecast-hint">Next 24h trend: Smog intensity expected to peak around early morning hours.</p>
                         </div>
                     </div>
 
-                    <div class="pollutant-pill-grid" id="pollutants-overview">
-                        <div class="pollutant-pill">
-                            <span class="p-name">PM2.5</span>
-                            <span class="p-val" id="val-pm25">-- ug/m³</span>
+                    <!-- Atmospheric Pollutant Grid -->
+                    <div class="pollutant-barometer">
+                        <div class="barometer-item">
+                            <div class="b-header">
+                                <span class="b-label">PM2.5</span>
+                                <span class="b-type">Fine Smog</span>
+                            </div>
+                            <div class="b-val" id="val-pm25">-- ug/m3</div>
                         </div>
-                        <div class="pollutant-pill">
-                            <span class="p-name">PM10</span>
-                            <span class="p-val" id="val-pm10">-- ug/m³</span>
+                        <div class="barometer-item">
+                            <div class="b-header">
+                                <span class="b-label">PM10</span>
+                                <span class="b-type">Coarse Dust</span>
+                            </div>
+                            <div class="b-val" id="val-pm10">-- ug/m3</div>
                         </div>
-                        <div class="pollutant-pill">
-                            <span class="p-name">PM Ratio</span>
-                            <span class="p-val" id="val-pmratio">--</span>
+                        <div class="barometer-item">
+                            <div class="b-header">
+                                <span class="b-label">PM Ratio</span>
+                                <span class="b-type">Fine/Coarse</span>
+                            </div>
+                            <div class="b-val" id="val-pmratio">--</div>
                         </div>
-                        <div class="pollutant-pill">
-                            <span class="p-name">NO2</span>
-                            <span class="p-val" id="val-no2">-- ug/m³</span>
+                        <div class="barometer-item">
+                            <div class="b-header">
+                                <span class="b-label">NO2</span>
+                                <span class="b-type">Traffic Emission</span>
+                            </div>
+                            <div class="b-val" id="val-no2">-- ug/m3</div>
                         </div>
-                        <div class="pollutant-pill">
-                            <span class="p-name">CO</span>
-                            <span class="p-val" id="val-co">-- ug/m³</span>
+                        <div class="barometer-item">
+                            <div class="b-header">
+                                <span class="b-label">Ozone (O3)</span>
+                                <span class="b-type">Photochemical</span>
+                            </div>
+                            <div class="b-val" id="val-o3">-- ug/m3</div>
                         </div>
-                        <div class="pollutant-pill">
-                            <span class="p-name">Ozone (O3)</span>
-                            <span class="p-val" id="val-o3">-- ug/m³</span>
+                        <div class="barometer-item">
+                            <div class="b-header">
+                                <span class="b-label">CO</span>
+                                <span class="b-type">Combustion</span>
+                            </div>
+                            <div class="b-val" id="val-co">-- ug/m3</div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Multi-Model Consensus Card -->
-                <div class="model-consensus-card glass-card">
-                    <h3 class="card-title">Multi-Model AI Ensemble</h3>
-                    <p class="card-subtitle">Simultaneous predictions across distinct machine learning architectures</p>
-                    
-                    <div class="model-breakdown-list">
-                        <div class="model-item">
-                            <div class="model-item-info">
-                                <span class="model-dot rf-dot"></span>
-                                <span class="model-name">Random Forest Regressor</span>
+                <!-- Multi-Model AI Consensus Widget -->
+                <div class="frost-card hero-side-card">
+                    <div class="card-super-header">
+                        <h3 class="widget-title">Multi-Model AI Forecast</h3>
+                        <span class="badge-mini">3 Architectures</span>
+                    </div>
+                    <p class="widget-sub">AI models running parallel inference on future atmospheric readings</p>
+
+                    <div class="model-forecast-tiles">
+                        <div class="model-tile">
+                            <div class="m-left">
+                                <div class="m-title">Random Forest</div>
+                                <span class="m-desc">Non-Linear Trees</span>
                             </div>
-                            <span class="model-score" id="rf-score">--</span>
+                            <div class="m-score" id="rf-score">--</div>
                         </div>
 
-                        <div class="model-item">
-                            <div class="model-item-info">
-                                <span class="model-dot ridge-dot"></span>
-                                <span class="model-name">Ridge Regression (CV)</span>
+                        <div class="model-tile">
+                            <div class="m-left">
+                                <div class="m-title">Ridge Regression</div>
+                                <span class="m-desc">Statistical Baseline</span>
                             </div>
-                            <span class="model-score" id="ridge-score">--</span>
+                            <div class="m-score" id="ridge-score">--</div>
                         </div>
 
-                        <div class="model-item">
-                            <div class="model-item-info">
-                                <span class="model-dot dl-dot"></span>
-                                <span class="model-name">Deep Learning (PyTorch MLP)</span>
+                        <div class="model-tile">
+                            <div class="m-left">
+                                <div class="m-title">Deep Learning</div>
+                                <span class="m-desc">PyTorch MLP</span>
                             </div>
-                            <span class="model-score" id="dl-score">--</span>
+                            <div class="m-score" id="dl-score">--</div>
                         </div>
                     </div>
 
-                    <div class="consensus-box">
-                        <div class="consensus-label">Ensemble Consensus</div>
-                        <div class="consensus-value" id="consensus-score">-- / 5.0</div>
+                    <div class="consensus-footer">
+                        <div class="cf-left">
+                            <span class="cf-tag">Ensemble Consensus</span>
+                            <span class="cf-sub">Average AI Agreement</span>
+                        </div>
+                        <div class="cf-score" id="consensus-score">-- / 5.0</div>
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- 3-Day Forecast Section -->
+            <section class="content-section">
+                <div class="section-topbar">
+                    <div>
+                        <h2 class="section-heading">3-Day Weather and Air Outlook</h2>
+                        <p class="section-subtext">Hourly synthesized predictions across Lahore 72-hour horizon</p>
+                    </div>
+                    <div class="horizon-pill">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"/>
+                            <polyline points="12 6 12 12 16 14"/>
+                        </svg>
+                        <span>72-Hour Outlook</span>
+                    </div>
+                </div>
+
+                <div class="weather-days-grid" id="day-cards-container">
+                    <div class="frost-card day-card skeleton-card">Loading forecast...</div>
+                    <div class="frost-card day-card skeleton-card">Loading forecast...</div>
+                    <div class="frost-card day-card skeleton-card">Loading forecast...</div>
+                </div>
+            </section>
+
+            <!-- 72-Hour Atmospheric Trajectory Chart -->
+            <section class="content-section">
+                <div class="section-topbar">
+                    <div>
+                        <h2 class="section-heading">72-Hour Atmospheric Trajectory</h2>
+                        <p class="section-subtext">Multi-model hourly air pollution projections with diurnal smog cycles</p>
+                    </div>
+                    <div class="filter-controls">
+                        <button class="filter-btn active" data-filter="all">All Models</button>
+                        <button class="filter-btn" data-filter="rf">Random Forest</button>
+                        <button class="filter-btn" data-filter="ridge">Ridge</button>
+                        <button class="filter-btn" data-filter="dl">Deep Learning</button>
+                    </div>
+                </div>
+
+                <div class="frost-card chart-glass-card">
+                    <div class="chart-canvas-container">
+                        <canvas id="forecastChart"></canvas>
                     </div>
                 </div>
             </section>
 
-            <!-- 3-Day Forecast Cards -->
-            <section class="section-container">
-                <div class="section-header">
-                    <h2>3-Day Air Quality Outlook</h2>
-                    <span class="section-tag">72-Hour Horizon</span>
-                </div>
-
-                <div class="day-cards-grid" id="day-cards-container">
-                    <!-- Dynamic Day 1, Day 2, Day 3 cards injected via app.js -->
-                    <div class="day-card glass-card placeholder-card">Loading Day 1 forecast...</div>
-                    <div class="day-card glass-card placeholder-card">Loading Day 2 forecast...</div>
-                    <div class="day-card glass-card placeholder-card">Loading Day 3 forecast...</div>
-                </div>
-            </section>
-
-            <!-- 72-Hour Multi-Model Trajectory Chart -->
-            <section class="section-container">
-                <div class="section-header">
-                    <h2>72-Hour Multi-Model AQI Trajectory</h2>
-                    <div class="chart-legend-custom">
-                        <span class="legend-item"><span class="legend-dot rf-dot"></span> Random Forest</span>
-                        <span class="legend-item"><span class="legend-dot ridge-dot"></span> Ridge</span>
-                        <span class="legend-item"><span class="legend-dot dl-dot"></span> Deep Learning</span>
-                        <span class="legend-item"><span class="legend-dot consensus-dot"></span> Consensus</span>
+            <!-- SHAP Explainability & Health Protection -->
+            <section class="content-section">
+                <div class="section-topbar">
+                    <div>
+                        <h2 class="section-heading">Atmospheric Drivers and Health Protection</h2>
+                        <p class="section-subtext">SHAP explainability insights and health advisories</p>
                     </div>
                 </div>
 
-                <div class="chart-wrapper glass-card">
-                    <canvas id="forecastChart" height="110"></canvas>
-                </div>
-            </section>
-
-            <!-- SHAP Explainability & Feature Contribution -->
-            <section class="section-container">
-                <div class="section-header">
-                    <h2>Model Explainability & Feature Importance</h2>
-                    <span class="section-tag">SHAP TreeExplainer</span>
-                </div>
-
-                <div class="explain-grid">
-                    <div class="glass-card explain-chart-card">
-                        <h3 class="card-title">Top Contributing Factors to Current AQI</h3>
-                        <p class="card-subtitle">Real-time SHAP analysis of atmospheric inputs driving prediction</p>
-                        <div class="shap-chart-wrapper">
-                            <canvas id="shapChart" height="150"></canvas>
+                <div class="bottom-insights-grid">
+                    <!-- SHAP Drivers Chart -->
+                    <div class="frost-card">
+                        <div class="card-super-header">
+                            <h3 class="widget-title">Key Smog Driving Pollutants (SHAP)</h3>
+                            <span class="badge-mini">Impact on AQI</span>
+                        </div>
+                        <p class="widget-sub">Which atmospheric components are pushing the current score higher or lower</p>
+                        
+                        <div class="shap-canvas-container">
+                            <canvas id="shapChart"></canvas>
                         </div>
                     </div>
 
-                    <div class="glass-card health-advice-card">
-                        <h3 class="card-title">Health Protection Advisories</h3>
-                        <div class="health-tips" id="health-tips-list">
-                            <div class="tip-item">
-                                <span class="tip-icon">😷</span>
-                                <div>
-                                    <strong>Mask Recommendation:</strong>
-                                    <p id="tip-mask">Wear N95/KN95 respirators outdoors during peak pollution hours.</p>
+                    <!-- Health Protection Advice -->
+                    <div class="frost-card">
+                        <div class="card-super-header">
+                            <h3 class="widget-title">Air Quality Health Advisories</h3>
+                            <span class="badge-mini">Protection Guide</span>
+                        </div>
+                        <p class="widget-sub">Recommended precautionary steps based on forecast severity</p>
+
+                        <div class="advisory-tiles">
+                            <div class="advisory-card">
+                                <div class="adv-icon">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                                    </svg>
+                                </div>
+                                <div class="adv-body">
+                                    <h4>Outdoor Respirator Usage</h4>
+                                    <p id="adv-mask">N95 respirators are advised during peak morning and night hours.</p>
                                 </div>
                             </div>
-                            <div class="tip-item">
-                                <span class="tip-icon">🏠</span>
-                                <div>
-                                    <strong>Indoor Air Protection:</strong>
-                                    <p id="tip-indoor">Keep windows closed during early morning and late night inversions.</p>
+
+                            <div class="advisory-card">
+                                <div class="adv-icon">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <rect width="18" height="18" x="3" y="3" rx="2"/>
+                                        <path d="M3 9h18M9 21V9"/>
+                                    </svg>
+                                </div>
+                                <div class="adv-body">
+                                    <h4>Indoor Ventilation and Inversion</h4>
+                                    <p id="adv-indoor">Keep windows closed during early morning temperature inversions.</p>
                                 </div>
                             </div>
-                            <div class="tip-item">
-                                <span class="tip-icon">🏃</span>
-                                <div>
-                                    <strong>Physical Exercise:</strong>
-                                    <p id="tip-exercise">Avoid strenuous outdoor cardio during peak smog intervals.</p>
+
+                            <div class="advisory-card">
+                                <div class="adv-icon">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
+                                    </svg>
+                                </div>
+                                <div class="adv-body">
+                                    <h4>Sensitive Demographics</h4>
+                                    <p id="adv-sensitive">Children, elderly, and asthma patients should avoid strenuous cardio.</p>
                                 </div>
                             </div>
                         </div>
@@ -214,9 +312,9 @@
 
         </main>
 
-        <!-- Footer -->
-        <footer class="app-footer">
-            <p>Lahore AQI Intelligence System • Powered by FastAPI, PyTorch, Scikit-Learn & Weights and Biases</p>
+        <!-- Weather Platform Footer -->
+        <footer class="weather-footer">
+            <p>Lahore Atmospheric AI Platform - Real-time OpenWeather Feed, FastAPI and Weights & Biases</p>
         </footer>
     </div>
 
