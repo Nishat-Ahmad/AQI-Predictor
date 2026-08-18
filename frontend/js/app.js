@@ -1,5 +1,5 @@
 // Global State & API Configuration
-const API_BASE_URL = window.location.origin.includes("localhost") || window.location.origin.includes("127.0.0.1")
+const API_BASE_URL = (window.location.port === "5500" || window.location.port === "3000" || window.location.port === "5173")
     ? "http://localhost:8000"
     : window.location.origin;
 

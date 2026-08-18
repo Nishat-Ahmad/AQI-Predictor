@@ -9,9 +9,10 @@ An end-to-end Machine Learning and MLOps system for 3-Day Air Quality Index (AQI
 ```
 AQI-Predictor/
 ├── .env                       # API keys (OpenWeather, W&B)
-├── requirements.txt           # Project dependencies (FastAPI, PyTorch, Scikit-Learn, SHAP)
-├── Procfile                   # Cloud deployment entrypoint (Render / Railway)
-├── render.yaml                # Render deployment specification
+├── requirements.txt           # Project dependencies (FastAPI, PyTorch, Scikit-Learn, SHAP, Seaborn)
+├── vercel.json                # Vercel serverless deployment & routing specification
+├── api/
+│   └── index.py               # Vercel ASGI serverless handler
 ├── scripts/
 │   ├── backfill_pipeline.py   # Historical data ingestion (2 years) & feature engineering
 │   └── feature_pipeline.py    # Real-time data fetching & delta feature extraction
@@ -27,8 +28,10 @@ AQI-Predictor/
 │   └── forecast_service.py    # 72-hour OpenWeather forecast synthesizer
 ├── frontend/
 │   ├── index.html             # Modern HTML5 dashboard layout
-│   ├── css/style.css          # Custom glassmorphism dark theme
+│   ├── css/style.css          # Weather theming (Thunderstorm Dark & Cloudy Light)
 │   └── js/app.js              # Chart.js dynamic time-series & SHAP visualizer
+├── EDA/
+│   └── eda.ipynb              # Exploratory Data Analysis & correlation notebook
 └── artifacts/                 # Local model checkpoints and dataset artifacts
 ```
 
@@ -58,9 +61,9 @@ AQI-Predictor/
 
 4. **Custom Frontend Dashboard**:
    - Built with Vanilla HTML5, CSS3, and JavaScript with zero heavy framework bloat.
+   - Dynamic theme toggle: **Thunderstorm Dark** vs **Cloudy / Sunny Light**.
    - Interactive 72-hour multi-model trajectory chart powered by Chart.js.
    - Live SHAP feature importance visualizer.
-   - Day 1, Day 2, and Day 3 outlook summary cards with health advisories.
 
 ---
 
@@ -96,11 +99,18 @@ uvicorn backend.main:app --port 8000 --reload
 
 ---
 
-## Cloud Deployment (Render / Railway / Vercel)
+## Cloud Deployment (Vercel Serverless)
 
-### Deploying to Render
-1. Push your repository to GitHub.
-2. Create a new **Web Service** on [Render](https://render.com).
-3. Connect your repository. Render automatically reads [`render.yaml`](file:///d:/Code/AQI-Predictor/render.yaml) and [`Procfile`](file:///d:/Code/AQI-Predictor/Procfile).
-4. Add environment variables: `OPENWEATHER_API_KEY` and `WANDB_API_KEY`.
-5. Your application will be live at `https://your-app-name.onrender.com/` serving both the custom web UI and the FastAPI REST API!
+### Deploying to Vercel (1-Click Serverless)
+1. Push your repository to GitHub:
+   ```bash
+   git add .
+   git commit -m "Deploying to Vercel"
+   git push
+   ```
+2. Import the repository in [Vercel](https://vercel.com/new).
+3. Vercel automatically detects [`vercel.json`](file:///d:/Code/AQI-Predictor/vercel.json) and routes both the static frontend and the [`api/index.py`](file:///d:/Code/AQI-Predictor/api/index.py) serverless FastAPI handler.
+4. Add environment variables under Project Settings $\to$ Environment Variables:
+   - `OPENWEATHER_API_KEY`
+   - `WANDB_API_KEY`
+5. Click **Deploy**. Your application will be live at `https://your-project.vercel.app/`!
