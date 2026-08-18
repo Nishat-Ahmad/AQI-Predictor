@@ -1,0 +1,42 @@
+/* -------------------------------------------------------------
+   Barometer: Atmospheric Pollutant Grid & Chips
+-------------------------------------------------------------- */
+
+.pollutant-barometer {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 0.65rem;
+}
+
+.barometer-item {
+    background: var(--bg-chip);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 0.65rem 0.75rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.b-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 0.2rem;
+}
+
+.b-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--accent-primary);
+}
+
+.b-type {
+    font-size: 0.62rem;
+    color: var(--text-dim);
+}
+
+.b-val {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-heading);
+}

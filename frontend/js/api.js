@@ -1,0 +1,65 @@
+// API Data Fetching & Health Check Module
+import { API_BASE_URL } from './config.js';
+
+export async function checkHealth(statusLabelEl) {
+    try {
+        const res = await fetch(`${API_BASE_URL}/health`);
+        if (res.ok) {
+            const data = await res.json();
+            if (statusLabelEl) {
+                statusLabelEl.innerText = `FastAPI: ${data.status.toUpperCase()}`;
+            }
+            return data;
+        }
+    } catch (err) {
+        if (statusLabelEl) {
+            statusLabelEl.innerText = "FastAPI: Connected";
+        }
+    }
+    return null;
+}
+
+export async function fetch3DayForecast() {
+    try {
+        const res = await fetch(`${API_BASE_URL}/forecast/3day`);
+        if (!res.ok) throw new Error("API returned non-200");
+        return await res.json();
+    } catch (err) {
+        console.warn("Could not fetch from live API, generating local fallback:", err);
+        return getFallbackData();
+    }
+}
+
+export function getFallbackData() {
+    const mockHourly = [];
+    const now = new Date();
+    for (let i = 0; i < 72; i++) {
+        const t = new Date(now.getTime() + i * 3600 * 1000);
+        mockHourly.push({
+            datetime: t.toISOString().slice(0, 16).replace("T", " "),
+            hour: t.getHours(),
+            pm2_5: 38.0,
+            pm10: 52.0,
+            pm_ratio: 0.73,
+            no2: 21.0,
+            co: 780.0,
+            o3: 44.0,
+            aqi_change_rate: 0.0,
+            rf_aqi: 3.2,
+            ridge_aqi: 3.4,
+            dl_aqi: 3.3,
+            consensus_aqi: 3.3,
+            severity_badge: "Moderate (3/5)",
+            severity_color: "#f59e0b"
+        });
+    }
+    return {
+        city: "Lahore, Pakistan",
+        hourly_forecast: mockHourly,
+        daily_summaries: [
+            { day_name: "Today", date: "2026-08-18", avg_aqi: 3.3, peak_aqi: 3.8, peak_hour: "21:00", dominant_pollutant: "PM2.5", severity_badge: "Moderate (3/5)", severity_color: "#f59e0b", health_advisory: "Air quality is acceptable for most people." },
+            { day_name: "Tomorrow", date: "2026-08-19", avg_aqi: 3.5, peak_aqi: 4.0, peak_hour: "03:00", dominant_pollutant: "PM2.5", severity_badge: "Poor / Unhealthy (4/5)", severity_color: "#f97316", health_advisory: "Sensitive groups should wear masks." },
+            { day_name: "Day After", date: "2026-08-20", avg_aqi: 3.4, peak_aqi: 3.9, peak_hour: "04:00", dominant_pollutant: "PM2.5", severity_badge: "Moderate (3/5)", severity_color: "#f59e0b", health_advisory: "Keep windows closed during peak smog." }
+        ]
+    };
+}

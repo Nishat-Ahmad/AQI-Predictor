@@ -1,0 +1,39 @@
+/* -------------------------------------------------------------
+   Charts: Chart.js Canvas Containers & Filter Buttons
+-------------------------------------------------------------- */
+
+.filter-controls {
+    display: flex;
+    gap: 0.4rem;
+}
+
+.filter-btn {
+    padding: 0.35rem 0.75rem;
+    border-radius: 8px;
+    background: var(--bg-chip);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.filter-btn.active, .filter-btn:hover {
+    background: rgba(56, 189, 248, 0.16);
+    border-color: var(--accent-primary);
+    color: var(--text-heading);
+}
+
+.chart-glass-card {
+    padding: 1.25rem 1.25rem 0.75rem;
+}
+
+.chart-canvas-container {
+    height: 330px;
+    position: relative;
+}
+
+.shap-canvas-container {
+    height: 230px;
+    position: relative;
+}
