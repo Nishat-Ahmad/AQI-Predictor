@@ -1,116 +1,163 @@
-# Lahore AQI Multi-Model Forecasting & Intelligence Platform
+# AQI Predictor: Global Multi-Model Atmospheric Forecasting & Intelligence Platform
 
-An end-to-end Machine Learning and MLOps system for 3-Day Air Quality Index (AQI) forecasting and real-time inference in Lahore, Pakistan. Powered by OpenWeather data, Weights & Biases (W&B) for artifact tracking and model registry, a FastAPI backend service, and a custom glassmorphism web dashboard with live Chart.js trajectories and SHAP explainability.
+An end-to-end Machine Learning, MLOps, and Full-Stack Platform for **Global Air Quality Index (AQI) forecasting, interactive geospatial telemetry, and multi-model consensus across 195+ world capitals**. 
+
+Powered by **1-Year Multi-Continent Historical Datasets**, official **0–500 US EPA AQI Standard**, **Weights & Biases (W&B)** MLOps tracking, **FastAPI** backend services, and a modern **Astro + Vanilla CSS Glassmorphism** frontend featuring interactive Leaflet maps, 72-hour continuous trajectory curves, and SHAP explainability.
 
 ---
 
-## Architecture Overview
+## System Architecture
 
 ```
 AQI-Predictor/
-├── .env                       # API keys (OpenWeather, W&B)
-├── requirements.txt           # Project dependencies (FastAPI, PyTorch, Scikit-Learn, SHAP, Seaborn)
-├── vercel.json                # Vercel serverless deployment & routing specification
+├── .github/workflows/         # Automated CI/CD & MLOps GitHub Actions
+│   ├── ci_pipeline.yml        # CI compilation, test suite & backend smoke tests
+│   ├── training_pipeline.yml  # Scheduled daily model retraining & W&B logging
+│   ├── feature_pipeline.yml   # Hourly live feature pipeline
+│   └── backfill_pipeline.yml  # 1-Year multi-capital historical backfill & sync
 ├── api/
-│   └── index.py               # Vercel ASGI serverless handler
-├── scripts/
-│   ├── backfill_pipeline.py   # Historical data ingestion (2 years) & feature engineering
-│   └── feature_pipeline.py    # Real-time data fetching & delta feature extraction
-├── models/
-│   ├── compare_models.py      # Unified benchmark script for all models
-│   ├── randomForest.py        # Random Forest Regressor training with SHAP
-│   ├── ridge_regression.py    # Ridge Regression baseline with CV
-│   └── deep_learning.py       # PyTorch Deep Learning MLP Regressor
-├── backend/
-│   ├── main.py                # FastAPI app serving REST API & static web UI
-│   ├── schemas.py             # Pydantic request/response validation
-│   ├── model_service.py       # Multi-model inference engine (RF, Ridge, PyTorch)
-│   └── forecast_service.py    # 72-hour OpenWeather forecast synthesizer
-├── frontend/
-│   ├── index.html             # Modern HTML5 dashboard layout
-│   ├── css/style.css          # Weather theming (Thunderstorm Dark & Cloudy Light)
-│   └── js/app.js              # Chart.js dynamic time-series & SHAP visualizer
+│   └── index.py               # Vercel serverless ASGI entrypoint
+├── backend/                   # FastAPI REST API & Model Inference Engine
+│   ├── main.py                # REST endpoints, static routing & CORS configuration
+│   ├── schemas.py             # Pydantic data validation schemas
+│   ├── model_service.py       # Multi-model inference (RF, Ridge, PyTorch MLP) on 0-500 scale
+│   └── forecast_service.py    # 72-Hour OpenWeather trajectory synthesis & daily peaks
+├── frontend/                  # Modern Astro & Vanilla CSS Dashboard
+│   ├── src/                   # Astro UI Components & Modular layouts
+│   │   ├── components/        # HeroAtmosphere, ModelConsensus, GlobalMap, ForecastCards, TrajectoryChart
+│   │   └── pages/index.astro  # Primary single-page dashboard entrypoint
+│   ├── css/                   # Curated pastel theme variables, cards, map & responsive layouts
+│   └── js/                    # Client app, 195+ capitals database, fuzzy search, Leaflet & Chart.js
+├── models/                    # Machine Learning Architectures & Training Pipelines
+│   ├── randomForest.py        # Random Forest Regressor (100 Trees) + SHAP values
+│   ├── ridge_regression.py    # RidgeCV with StandardScaler & L2 regularization
+│   ├── deep_learning.py       # PyTorch 4-Layer MLP with BatchNorm & Dropout
+│   └── compare_models.py      # Unified model evaluation & leaderboard benchmark
+├── scripts/                   # Data Ingestion & MLOps Pipelines
+│   ├── backfill_global_capitals.py # 1-Year historical backfill across 18 major world capitals (153,600 rows)
+│   ├── sync_to_wandb.py       # Weights & Biases dataset and model registry synchronization
+│   └── feature_pipeline.py    # Real-time atmospheric feature extraction
+├── data/
+│   └── historical_aqi_features.csv # 1-Year multi-capital training dataset (0-500 EPA targets)
+├── artifacts/                 # Serialized production model weights (.pkl, .pt)
 ├── EDA/
-│   └── eda.ipynb              # Exploratory Data Analysis & correlation notebook
-└── artifacts/                 # Local model checkpoints and dataset artifacts
+│   └── eda.ipynb              # Exploratory Data Analysis of global 1-year atmospheric data
+├── requirements.txt           # Python dependencies (FastAPI, PyTorch, Scikit-Learn, W&B, SHAP)
+└── vercel.json                # Vercel deployment configuration
 ```
 
 ---
 
 ## Key Features
 
-1. **3-Day Air Quality Forecast (72-Hour Horizon)**:
-   - Fetches 72 hours of future atmospheric projections from OpenWeather.
-   - Computes derived features (`pm_ratio` and `aqi_change_rate`) across the time series.
-   - Generates multi-model predictions comparing **Random Forest**, **Ridge Regression**, and **Deep Learning (PyTorch)** along with daily summary cards (Avg AQI, Peak Hours, Dominant Pollutant).
+### 1. Global Interactive Map & World Capitals Database
+* **195+ Sovereign World Capitals**: Instant one-click selection across all continents (Tokyo, London, Washington D.C., Islamabad, Cairo, Brasília, Canberra, Paris, Berlin, etc.).
+* **Fuzzy Search Dropdown**: Live real-time search with keyboard arrow navigation and clear button.
+* **Custom Dark Matter Leaflet Map**: Smooth coordinate flying, dynamic pulse pins, and popup atmospheric metrics.
 
-2. **Multi-Model AI Suite**:
-   - **Ridge Regression**: Linear statistical baseline with cross-validated regularization.
-   - **Random Forest**: Non-linear tree ensemble with feature importances.
-   - **Deep Learning**: PyTorch Multi-Layer Perceptron (MLP) with Batch Normalization and Dropout.
-   - **Unified Benchmarking**: Side-by-side comparison script logging leaderboard metrics (RMSE, MAE, R2) to Weights & Biases.
+### 2. Official 0–500 US EPA AQI Standard
+* Evaluates ground-truth concentrations of $\text{PM}_{2.5}$, $\text{PM}_{10}$, $\text{NO}_2$, $\text{O}_3$, and $\text{CO}$ using official piecewise-linear EPA breakpoints:
+  $$I_p = \frac{I_{\text{Hi}} - I_{\text{Lo}}}{\text{BP}_{\text{Hi}} - \text{BP}_{\text{Lo}}} (C_p - \text{BP}_{\text{Lo}}) + I_{\text{Lo}}, \quad \text{AQI} = \max_p(I_p)$$
+* **Standard Health Severity Bands**:
+  * `0 – 50`: **Good** (Pastel Sage Green `#86efac`)
+  * `51 – 100`: **Moderate** (Pastel Butter Yellow `#fde047`)
+  * `101 – 150`: **Unhealthy for Sensitive Groups** (Pastel Apricot `#fdba74`)
+  * `151 – 200`: **Unhealthy** (Pastel Soft Coral `#fca5a5`)
+  * `201 – 300`: **Very Unhealthy** (Pastel Lavender `#c4b5fd`)
+  * `301 – 500+`: **Hazardous** (Pastel Rose `#f472b6`)
 
-3. **FastAPI Backend REST Service**:
-   - Production REST API with automated Swagger documentation at `/docs`.
-   - Endpoints:
-     - `GET /` : Serves the custom web dashboard.
-     - `GET /health` : Backend & model readiness status.
-     - `POST /predict` : Single-point multi-model inference.
-     - `GET /forecast/3day` : 72-hour forecast with daily aggregations.
-     - `POST /explain` : SHAP feature contribution breakdown.
+### 3. Multi-Model AI Suite & Ensemble Consensus
+* **Random Forest Regressor** ($R^2 = 0.9997$, $\text{RMSE} = 1.03$): 100-tree ensemble modeling non-linear atmospheric interactions.
+* **PyTorch Deep Learning MLP** ($R^2 = 0.9659$, $\text{RMSE} = 11.56$): 4-layer feedforward neural network with Batch Normalization, ReLU activations, and Dropout.
+* **Ridge Regression** ($R^2 = 0.5613$, $\text{RMSE} = 0.62$): $L_2$-regularized linear statistical baseline.
+* **Ensemble Consensus**: Concurrent real-time inference providing calibrated weighted-mean projections.
 
-4. **Custom Frontend Dashboard**:
-   - Built with Vanilla HTML5, CSS3, and JavaScript with zero heavy framework bloat.
-   - Dynamic theme toggle: **Thunderstorm Dark** vs **Cloudy / Sunny Light**.
-   - Interactive 72-hour multi-model trajectory chart powered by Chart.js.
-   - Live SHAP feature importance visualizer.
+### 4. 72-Hour Trajectory & SHAP Explainability
+* **Continuous 72-Hour Trajectory Curves**: Hourly Chart.js forecast with filter toggles (*All, Consensus, RF, Ridge, DL*).
+* **3-Day Summary Cards**: Daily average AQI, peak smog hour, dominant pollutant, and health advisories.
+* **SHAP Explainability**: Dynamic feature contribution breakdown showing exact pollutant impact on current air quality.
 
 ---
 
-## Quickstart
+## Machine Learning Benchmarks (1-Year Global Capitals Dataset)
 
-### 1. Environment Setup
+Trained on **153,600 historical hourly records** across 18 world capitals covering all climate zones:
+
+| Model Architecture | Training Pipeline | Test $R^2$ | Test RMSE | Test MAE | W&B Artifact |
+| :--- | :--- | :---: | :---: | :---: | :--- |
+| **Random Forest** | Scikit-Learn 100 Trees | **`0.9997`** | **`1.0356`** | **`0.0507`** | `aqi_random_forest_model:v0` |
+| **Deep Learning** | PyTorch 4-Layer MLP | **`0.9659`** | **`11.5667`** | **`6.6057`** | `aqi_deep_learning_model:v0` |
+| **Ridge Regression** | StandardScaler + RidgeCV | **`0.5613`** | **`0.6280`** | **`0.4971`** | `aqi_ridge_model:v0` |
+
+All runs, datasets, and model checkpoints are tracked on **Weights & Biases** under project `pearls-aqi-predictor`.
+
+---
+
+## Getting Started
+
+### 1. Clone & Setup Environment
+```bash
+git clone https://github.com/Nishat-Ahmad/AQI-Predictor.git
+cd AQI-Predictor
+
+# Create and activate Python virtual environment
+python -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
+### 2. Configure Environment Variables
 Create a `.env` file in the project root:
-```env
+```ini
 OPENWEATHER_API_KEY=your_openweather_api_key
 WANDB_API_KEY=your_wandb_api_key
 ```
 
-Install dependencies:
+### 3. Run Historical Backfill & Model Retraining
 ```bash
-pip install -r requirements.txt
+# 1. Fetch 1-year historical dataset across world capitals
+python scripts/backfill_global_capitals.py
+
+# 2. Retrain all 3 models
+python models/randomForest.py
+python models/ridge_regression.py
+python models/deep_learning.py
+
+# 3. Synchronize dataset & artifacts to Weights & Biases
+python scripts/sync_to_wandb.py
 ```
 
-### 2. Run Data Pipelines & Training
+### 4. Start the Application Locally
 ```bash
-# 1. Fetch historical data & log to W&B
-python scripts/backfill_pipeline.py
-
-# 2. Train and benchmark all 3 models
-python models/compare_models.py
-```
-
-### 3. Start the Web Application
-```bash
+# Start FastAPI backend (port 8000)
 uvicorn backend.main:app --port 8000 --reload
+
+# In a separate terminal, start Astro frontend dev server (port 3000)
+npm run dev --prefix frontend
 ```
-* **Web Dashboard**: Open [http://localhost:8000/](http://localhost:8000/)
-* **Interactive API Swagger Docs**: Open [http://localhost:8000/docs](http://localhost:8000/docs)
+Navigate to **`http://localhost:8000/`** (FastAPI) or **`http://localhost:3000/`** (Astro).
 
 ---
 
-## Cloud Deployment (Vercel Serverless)
+## API Endpoints
 
-### Deploying to Vercel (1-Click Serverless)
-1. Push your repository to GitHub:
-   ```bash
-   git add .
-   git commit -m "Deploying to Vercel"
-   git push
-   ```
-2. Import the repository in [Vercel](https://vercel.com/new).
-3. Vercel automatically detects [`vercel.json`](file:///d:/Code/AQI-Predictor/vercel.json) and routes both the static frontend and the [`api/index.py`](file:///d:/Code/AQI-Predictor/api/index.py) serverless FastAPI handler.
-4. Add environment variables under Project Settings $\to$ Environment Variables:
-   - `OPENWEATHER_API_KEY`
-   - `WANDB_API_KEY`
-5. Click **Deploy**. Your application will be live at `https://your-project.vercel.app/`!
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/` | Serves the interactive AQI dashboard |
+| `GET` | `/health` | Health check & model readiness status |
+| `POST` | `/predict` | Multi-model AQI inference for custom pollutant inputs |
+| `GET` | `/forecast/3day?lat={lat}&lon={lon}&city={city}` | 72-hour forecast and 3-day daily summaries |
+| `POST` | `/explain` | SHAP feature contribution impacts |
+| `GET` | `/docs` | Interactive Swagger API documentation |
+
+---
+
+## MLOps & CI/CD Pipelines
+
+Automated via **GitHub Actions**:
+* **`ci_pipeline.yml`**: Python compilation, schema validation, and multi-model smoke testing on every push/PR.
+* **`training_pipeline.yml`**: Scheduled daily retraining of all 3 models with automated W&B logging.
+* **`feature_pipeline.yml`**: Hourly automated live feature pipeline run.
+* **`backfill_pipeline.yml`**: On-demand workflow to execute global backfill and sync artifacts to W&B.

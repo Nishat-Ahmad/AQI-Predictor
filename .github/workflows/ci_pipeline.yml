@@ -34,6 +34,9 @@ jobs:
         run: |
           python -c "
           from backend.main import app
-          from backend.schemas import EnvironmentalInput, PredictionResponse
-          print('FastAPI app and schemas verified successfully.')
+          from backend.schemas import EnvironmentalInput, PredictionResponse, ForecastResponse
+          from backend.model_service import model_service
+          preds = model_service.predict({'pm2_5': 25.0, 'pm10': 40.0, 'no2': 15.0, 'o3': 30.0, 'co': 500.0, 'hour': 12, 'day': 18, 'month': 8, 'day_of_week': 1})
+          print('Model predictions verified:', preds)
+          print('FastAPI app, models, and schemas verified successfully.')
           "

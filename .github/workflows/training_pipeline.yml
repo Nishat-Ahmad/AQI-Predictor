@@ -24,7 +24,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run Multi-Model Training & Benchmarking Script
+      - name: Retrain All 3 Models & Sync to W&B Model Registry
         env:
           WANDB_API_KEY: ${{ secrets.WANDB_API_KEY }}
-        run: python models/compare_models.py
+        run: |
+          python models/randomForest.py
+          python models/ridge_regression.py
+          python models/deep_learning.py
+          python scripts/sync_to_wandb.py
