@@ -33,3 +33,7 @@ artifacts/**
 **/*.pyc
 .ipynb_checkpoints/
 **/.ipynb_checkpoints/
+
+# Allow model weight artifacts
+!artifacts/*.pkl
+!artifacts/*.pt
