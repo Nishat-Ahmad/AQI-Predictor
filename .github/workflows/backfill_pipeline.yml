@@ -3,9 +3,14 @@ name: Backfill Feature Pipeline
 on:
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   run-backfill-pipeline:
     runs-on: ubuntu-latest
+    timeout-minutes: 25
 
     steps:
       - name: Checkout repository
@@ -16,6 +21,7 @@ jobs:
         with:
           python-version: '3.12'
           cache: 'pip'
+          cache-dependency-path: 'requirements-dev.txt'
 
       - name: Install Dependencies
         run: |
@@ -29,3 +35,12 @@ jobs:
         run: |
           python scripts/backfill_global_capitals.py
           python scripts/sync_to_wandb.py
+
+      - name: Upload Historical Dataset Artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: historical-aqi-dataset
+          path: data/historical_aqi_features.csv
+          if-no-files-found: ignore
+          retention-days: 14
