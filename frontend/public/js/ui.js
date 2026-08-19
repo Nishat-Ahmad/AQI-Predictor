@@ -70,7 +70,6 @@ export function renderDayCards(dailySummaries) {
                         <div class="d-dayname">${day.day_name}</div>
                         <span class="d-date">${day.date}</span>
                     </div>
-                    <div class="day-weather-icon">${WEATHER_CLOUD_ICON}</div>
                 </div>
 
                 <div class="day-aqi-stat" style="color: ${day.severity_color};">

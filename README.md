@@ -41,8 +41,8 @@ AQI-Predictor/
 │   └── historical_aqi_features.csv # 1-Year multi-capital training dataset (0-500 EPA targets)
 ├── artifacts/                 # Serialized production model weights (.pkl, .pt)
 ├── EDA/
-│   └── eda.ipynb              # Exploratory Data Analysis of global 1-year atmospheric data
-├── requirements.txt           # Python dependencies (FastAPI, PyTorch, Scikit-Learn, W&B, SHAP)
+├── requirements.txt           # Lean production backend dependencies for Vercel deployment
+├── requirements-dev.txt       # Full ML, training, & MLOps dependencies (PyTorch, W&B, SHAP)
 └── vercel.json                # Vercel deployment configuration
 ```
 
@@ -104,8 +104,11 @@ cd AQI-Predictor
 python -m venv .venv
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
-# Install dependencies
+# Install production backend dependencies (Lean Vercel bundle)
 pip install -r requirements.txt
+
+# Or install full ML training, pipeline & MLOps dependencies (PyTorch, W&B, SHAP)
+pip install -r requirements-dev.txt
 ```
 
 ### 2. Configure Environment Variables
@@ -155,9 +158,9 @@ Navigate to **`http://localhost:8000/`** (FastAPI) or **`http://localhost:3000/`
 ---
 
 ## MLOps & CI/CD Pipelines
-
-Automated via **GitHub Actions**:
-* **`ci_pipeline.yml`**: Python compilation, schema validation, and multi-model smoke testing on every push/PR.
-* **`training_pipeline.yml`**: Scheduled daily retraining of all 3 models with automated W&B logging.
-* **`feature_pipeline.yml`**: Hourly automated live feature pipeline run.
-* **`backfill_pipeline.yml`**: On-demand workflow to execute global backfill and sync artifacts to W&B.
+ 
+Automated via **GitHub Actions** with pip dependency caching, timeout protection, concurrency control, and artifact persistence:
+* **`ci_pipeline.yml`**: Python syntax compilation, Pydantic schema validation, and multi-model smoke testing on every push and PR against lean production requirements.
+* **`training_pipeline.yml`**: Scheduled daily retraining of Random Forest, Ridge Regression, and PyTorch MLP models, automatic upload of trained weights (`.pkl`/`.pt`) to GitHub Action artifacts, and cloud synchronization to Weights & Biases Model Registry.
+* **`feature_pipeline.yml`**: Hourly automated live atmospheric feature extraction and logging to W&B Feature Store.
+* **`backfill_pipeline.yml`**: On-demand workflow to execute global multi-continent backfill across 18 capitals, generating and preserving `historical_aqi_features.csv` as a downloadable artifact and syncing to W&B.

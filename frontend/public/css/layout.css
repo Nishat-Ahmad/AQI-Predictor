@@ -144,7 +144,7 @@ body {
 
 .bottom-insights-grid {
     display: grid;
-    grid-template-columns: 1.35fr 1fr;
+    grid-template-columns: 1fr;
     gap: 1.25rem;
 }
 
