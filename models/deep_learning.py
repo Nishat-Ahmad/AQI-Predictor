@@ -130,6 +130,17 @@ def train_deep_learning_model():
     }
     torch.save(payload, model_filepath)
     
+    # Save pure NumPy format for serverless production deployment (zero torch dependency)
+    numpy_filepath = os.path.join(artifacts_dir, "deep_learning_numpy.pkl")
+    numpy_payload = {
+        "weights": {k: v.cpu().numpy() for k, v in model.state_dict().items()},
+        "scaler": scaler,
+        "feature_names": feature_names,
+        "input_dim": X.shape[1]
+    }
+    joblib.dump(numpy_payload, numpy_filepath)
+    print(f"Saved pure NumPy weights to: {numpy_filepath}")
+    
     model_artifact = wandb.Artifact(
         name="aqi_deep_learning_model",
         type="model",

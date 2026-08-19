@@ -102,9 +102,34 @@ class ModelService:
         self.ridge = None
         self.ridge_features = None
         self.dl = None
+        self.dl_numpy_weights = None
         self.dl_scaler = None
         self.dl_features = None
         self.load_models()
+
+    def _predict_dl_numpy(self, x_scaled: np.ndarray) -> float:
+        """Executes 4-Layer PyTorch MLP forward pass using pure NumPy (zero torch dependency)."""
+        w = self.dl_numpy_weights
+        # Layer 0: Linear 11 -> 64
+        x = np.dot(x_scaled, w['network.0.weight'].T) + w['network.0.bias']
+        # Layer 1: BatchNorm1d(64) in eval mode
+        eps = 1e-5
+        x = (x - w['network.1.running_mean']) / np.sqrt(w['network.1.running_var'] + eps) * w['network.1.weight'] + w['network.1.bias']
+        # Layer 2: ReLU
+        x = np.maximum(0.0, x)
+        # Layer 4: Linear 64 -> 32
+        x = np.dot(x, w['network.4.weight'].T) + w['network.4.bias']
+        # Layer 5: BatchNorm1d(32) in eval mode
+        x = (x - w['network.5.running_mean']) / np.sqrt(w['network.5.running_var'] + eps) * w['network.5.weight'] + w['network.5.bias']
+        # Layer 6: ReLU
+        x = np.maximum(0.0, x)
+        # Layer 8: Linear 32 -> 16
+        x = np.dot(x, w['network.8.weight'].T) + w['network.8.bias']
+        # Layer 9: ReLU
+        x = np.maximum(0.0, x)
+        # Layer 10: Linear 16 -> 1
+        x = np.dot(x, w['network.10.weight'].T) + w['network.10.bias']
+        return float(x[0, 0])
 
     def load_models(self):
         """Loads all available models from artifacts/"""
@@ -136,27 +161,39 @@ class ModelService:
             except Exception as e:
                 print(f"Error loading Ridge Regression: {e}")
 
-        # 3. PyTorch Deep Learning
-        dl_path = os.path.join(ARTIFACTS_DIR, "deep_learning_aqi.pt")
-        if os.path.exists(dl_path) and TORCH_AVAILABLE:
+        # 3. Deep Learning (Pure NumPy format - works in serverless production without torch)
+        dl_np_path = os.path.join(ARTIFACTS_DIR, "deep_learning_numpy.pkl")
+        if os.path.exists(dl_np_path):
             try:
-                checkpoint = torch.load(dl_path, map_location=torch.device("cpu"), weights_only=False)
-                input_dim = checkpoint.get("input_dim", 11)
-                self.dl = AQINeuralNet(input_dim)
-                state = checkpoint.get("state_dict") or checkpoint.get("model_state_dict")
-                if state:
-                    self.dl.load_state_dict(state)
-                self.dl.eval()
-                self.dl_scaler = checkpoint.get("scaler")
-                self.dl_features = checkpoint.get("feature_names")
+                np_data = joblib.load(dl_np_path)
+                self.dl_numpy_weights = np_data.get("weights")
+                self.dl_scaler = np_data.get("scaler")
+                self.dl_features = np_data.get("feature_names")
             except Exception as e:
-                print(f"Error loading PyTorch model: {e}")
+                print(f"Error loading NumPy Deep Learning weights: {e}")
+
+        # Fallback to PyTorch checkpoint if torch is available and numpy weights not found
+        if self.dl_numpy_weights is None:
+            dl_path = os.path.join(ARTIFACTS_DIR, "deep_learning_aqi.pt")
+            if os.path.exists(dl_path) and TORCH_AVAILABLE:
+                try:
+                    checkpoint = torch.load(dl_path, map_location=torch.device("cpu"), weights_only=False)
+                    input_dim = checkpoint.get("input_dim", 11)
+                    self.dl = AQINeuralNet(input_dim)
+                    state = checkpoint.get("state_dict") or checkpoint.get("model_state_dict")
+                    if state:
+                        self.dl.load_state_dict(state)
+                    self.dl.eval()
+                    self.dl_scaler = checkpoint.get("scaler")
+                    self.dl_features = checkpoint.get("feature_names")
+                except Exception as e:
+                    print(f"Error loading PyTorch model: {e}")
 
     def get_status(self):
         return {
             "random_forest": self.rf is not None,
             "ridge_regression": self.ridge is not None,
-            "deep_learning": self.dl is not None,
+            "deep_learning": (self.dl_numpy_weights is not None) or (self.dl is not None),
             "torch_available": TORCH_AVAILABLE
         }
 
@@ -211,8 +248,17 @@ class ModelService:
             raw_ridge = float(self.ridge.predict(aligned)[0])
             results["ridge_regression"] = float(max(0, min(500, round(raw_ridge))))
 
-        # 3. Deep Learning (PyTorch)
-        if self.dl is not None and TORCH_AVAILABLE:
+        # 3. Deep Learning (NumPy MLP / PyTorch fallback)
+        if self.dl_numpy_weights is not None:
+            cols = self.dl_features or list(input_df.columns)
+            aligned = input_df.reindex(columns=cols, fill_value=0.0)
+            if self.dl_scaler is not None:
+                scaled = self.dl_scaler.transform(aligned)
+            else:
+                scaled = aligned.values
+            raw_dl = self._predict_dl_numpy(scaled)
+            results["deep_learning"] = float(max(0, min(500, round(raw_dl))))
+        elif self.dl is not None and TORCH_AVAILABLE:
             cols = self.dl_features or list(input_df.columns)
             aligned = input_df.reindex(columns=cols, fill_value=0.0)
             if self.dl_scaler is not None:
