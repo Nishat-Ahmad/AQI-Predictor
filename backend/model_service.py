@@ -9,7 +9,7 @@ try:
     TORCH_AVAILABLE = True
 
     class AQINeuralNet(nn.Module):
-        def __init__(self, input_dim):
+        def __init__(self, input_dim, output_dim=3):
             super(AQINeuralNet, self).__init__()
             self.network = nn.Sequential(
                 nn.Linear(input_dim, 64),
@@ -22,7 +22,7 @@ try:
                 nn.Dropout(0.1),
                 nn.Linear(32, 16),
                 nn.ReLU(),
-                nn.Linear(16, 1)
+                nn.Linear(16, output_dim)
             )
 
         def forward(self, x):
@@ -87,14 +87,6 @@ def calculate_epa_aqi(pm2_5: float, pm10: float, no2: float = 0.0, o3: float = 0
 
     return max(aqi_pm25, aqi_pm10, aqi_o3, aqi_no2)
 
-def map_model_level_to_epa(level_val: float, baseline_epa: int) -> int:
-    """Calibrates model continuous output into realistic EPA 0-500 scale aligned with ground truth concentration."""
-    # Linear scale approximation: 1.0 -> 25, 2.0 -> 75, 3.0 -> 125, 4.0 -> 175, 5.0 -> 320
-    scaled = (level_val - 1.0) * 65.0 + 25.0
-    # Blend 60% calculated EPA breakpoint ground-truth + 40% model variance
-    blended = round(0.65 * baseline_epa + 0.35 * scaled)
-    return max(0, min(500, blended))
-
 class ModelService:
     def __init__(self):
         self.rf = None
@@ -107,19 +99,19 @@ class ModelService:
         self.dl_features = None
         self.load_models()
 
-    def _predict_dl_numpy(self, x_scaled: np.ndarray) -> float:
+    def _predict_dl_numpy(self, x_scaled: np.ndarray) -> np.ndarray:
         """Executes 4-Layer PyTorch MLP forward pass using pure NumPy (zero torch dependency)."""
         w = self.dl_numpy_weights
-        # Layer 0: Linear 11 -> 64
+        # Layer 0: Linear -> 64
         x = np.dot(x_scaled, w['network.0.weight'].T) + w['network.0.bias']
-        # Layer 1: BatchNorm1d(64) in eval mode
+        # Layer 1: BatchNorm1d(64)
         eps = 1e-5
         x = (x - w['network.1.running_mean']) / np.sqrt(w['network.1.running_var'] + eps) * w['network.1.weight'] + w['network.1.bias']
         # Layer 2: ReLU
         x = np.maximum(0.0, x)
         # Layer 4: Linear 64 -> 32
         x = np.dot(x, w['network.4.weight'].T) + w['network.4.bias']
-        # Layer 5: BatchNorm1d(32) in eval mode
+        # Layer 5: BatchNorm1d(32)
         x = (x - w['network.5.running_mean']) / np.sqrt(w['network.5.running_var'] + eps) * w['network.5.weight'] + w['network.5.bias']
         # Layer 6: ReLU
         x = np.maximum(0.0, x)
@@ -127,12 +119,12 @@ class ModelService:
         x = np.dot(x, w['network.8.weight'].T) + w['network.8.bias']
         # Layer 9: ReLU
         x = np.maximum(0.0, x)
-        # Layer 10: Linear 16 -> 1
+        # Layer 10: Linear 16 -> 3
         x = np.dot(x, w['network.10.weight'].T) + w['network.10.bias']
-        return float(x[0, 0])
+        return x.flatten()
 
     def load_models(self):
-        """Loads all available models from artifacts/"""
+        """Loads multi-horizon models from artifacts/"""
         # 1. Random Forest
         rf_path = os.path.join(ARTIFACTS_DIR, "random_forest_aqi.pkl")
         if os.path.exists(rf_path):
@@ -178,8 +170,9 @@ class ModelService:
             if os.path.exists(dl_path) and TORCH_AVAILABLE:
                 try:
                     checkpoint = torch.load(dl_path, map_location=torch.device("cpu"), weights_only=False)
-                    input_dim = checkpoint.get("input_dim", 11)
-                    self.dl = AQINeuralNet(input_dim)
+                    input_dim = checkpoint.get("input_dim", 30)
+                    output_dim = checkpoint.get("output_dim", 3)
+                    self.dl = AQINeuralNet(input_dim, output_dim=output_dim)
                     state = checkpoint.get("state_dict") or checkpoint.get("model_state_dict")
                     if state:
                         self.dl.load_state_dict(state)
@@ -213,72 +206,136 @@ class ModelService:
         else:
             return "Hazardous (301-500+)", "#f472b6", "Emergency conditions: entire population is likely to be affected."
 
-    def predict(self, feature_dict: dict) -> dict:
-        """Executes inference across all 3 models on actual EPA AQI scale."""
+    def predict_horizons(self, feature_dict: dict) -> dict:
+        """Executes multi-horizon forecasting (+24h, +48h, +72h) across all 3 models."""
         input_df = pd.DataFrame([feature_dict])
         
-        pm2_5 = float(feature_dict.get("pm2_5", 0.0))
-        pm10 = float(feature_dict.get("pm10", 0.0))
-        no2 = float(feature_dict.get("no2", 0.0))
-        o3 = float(feature_dict.get("o3", 0.0))
-        co = float(feature_dict.get("co", 0.0))
-
-        # Calculate exact baseline EPA AQI from real pollutant concentrations
+        pm2_5 = float(feature_dict.get("pm2_5", 25.0))
+        pm10 = float(feature_dict.get("pm10", 40.0))
+        no2 = float(feature_dict.get("no2", 15.0))
+        o3 = float(feature_dict.get("o3", 30.0))
+        co = float(feature_dict.get("co", 500.0))
         baseline_epa = calculate_epa_aqi(pm2_5, pm10, no2, o3, co)
 
-        if "pm_ratio" not in feature_dict or feature_dict["pm_ratio"] is None:
+        # Ensure default lag / rolling values if single test input
+        if "current_aqi" not in input_df.columns or pd.isna(input_df["current_aqi"].iloc[0]):
+            input_df["current_aqi"] = baseline_epa
+        for lag in [1, 2, 3, 6, 12, 24, 48]:
+            col = f"aqi_lag_{lag}h"
+            if col not in input_df.columns or pd.isna(input_df[col].iloc[0]):
+                input_df[col] = float(input_df["current_aqi"].iloc[0])
+        if "pm2_5_lag_1h" not in input_df.columns or pd.isna(input_df["pm2_5_lag_1h"].iloc[0]):
+            input_df["pm2_5_lag_1h"] = pm2_5
+        if "pm2_5_lag_24h" not in input_df.columns or pd.isna(input_df["pm2_5_lag_24h"].iloc[0]):
+            input_df["pm2_5_lag_24h"] = pm2_5
+        if "pm10_lag_24h" not in input_df.columns or pd.isna(input_df["pm10_lag_24h"].iloc[0]):
+            input_df["pm10_lag_24h"] = pm10
+        if "aqi_roll_mean_24h" not in input_df.columns or pd.isna(input_df["aqi_roll_mean_24h"].iloc[0]):
+            input_df["aqi_roll_mean_24h"] = float(baseline_epa)
+        if "aqi_roll_std_24h" not in input_df.columns or pd.isna(input_df["aqi_roll_std_24h"].iloc[0]):
+            input_df["aqi_roll_std_24h"] = 5.0
+        if "aqi_roll_max_24h" not in input_df.columns or pd.isna(input_df["aqi_roll_max_24h"].iloc[0]):
+            input_df["aqi_roll_max_24h"] = float(baseline_epa) + 10
+        if "aqi_roll_min_24h" not in input_df.columns or pd.isna(input_df["aqi_roll_min_24h"].iloc[0]):
+            input_df["aqi_roll_min_24h"] = max(0.0, float(baseline_epa) - 10)
+        if "pm2_5_roll_mean_24h" not in input_df.columns or pd.isna(input_df["pm2_5_roll_mean_24h"].iloc[0]):
+            input_df["pm2_5_roll_mean_24h"] = pm2_5
+        if "pm_ratio" not in input_df.columns or pd.isna(input_df["pm_ratio"].iloc[0]):
             input_df["pm_ratio"] = round(pm2_5 / (pm10 + 1e-5), 4)
-
-        if "aqi_change_rate" not in feature_dict or feature_dict["aqi_change_rate"] is None:
+        if "aqi_change_rate" not in input_df.columns or pd.isna(input_df["aqi_change_rate"].iloc[0]):
             input_df["aqi_change_rate"] = 0.0
 
-        results = {}
+        hour = int(feature_dict.get("hour", 12))
+        month = int(feature_dict.get("month", 8))
+        if "hour_sin" not in input_df.columns or pd.isna(input_df["hour_sin"].iloc[0]):
+            input_df["hour_sin"] = np.sin(2 * np.pi * hour / 24.0)
+        if "hour_cos" not in input_df.columns or pd.isna(input_df["hour_cos"].iloc[0]):
+            input_df["hour_cos"] = np.cos(2 * np.pi * hour / 24.0)
+        if "month_sin" not in input_df.columns or pd.isna(input_df["month_sin"].iloc[0]):
+            input_df["month_sin"] = np.sin(2 * np.pi * month / 12.0)
+        if "month_cos" not in input_df.columns or pd.isna(input_df["month_cos"].iloc[0]):
+            input_df["month_cos"] = np.cos(2 * np.pi * month / 12.0)
+        if "day_of_week" not in input_df.columns or pd.isna(input_df["day_of_week"].iloc[0]):
+            input_df["day_of_week"] = int(feature_dict.get("day_of_week", 1))
+        if "lat" not in input_df.columns or pd.isna(input_df["lat"].iloc[0]):
+            input_df["lat"] = float(feature_dict.get("lat", 51.5074))
+        if "lon" not in input_df.columns or pd.isna(input_df["lon"].iloc[0]):
+            input_df["lon"] = float(feature_dict.get("lon", -0.1278))
 
-        # 1. Random Forest
+        input_df = input_df.fillna(0.0)
+
+        rf_preds = [baseline_epa, baseline_epa, baseline_epa]
+        ridge_preds = [baseline_epa, baseline_epa, baseline_epa]
+        dl_preds = [baseline_epa, baseline_epa, baseline_epa]
+
+        # 1. Random Forest Multi-Horizon
         if self.rf is not None:
             cols = self.rf_features or list(input_df.columns)
-            aligned = input_df.reindex(columns=cols, fill_value=0.0)
-            raw_rf = float(self.rf.predict(aligned)[0])
-            results["random_forest"] = float(max(0, min(500, round(raw_rf))))
+            aligned = input_df.reindex(columns=cols, fill_value=0.0).fillna(0.0)
+            raw = self.rf.predict(aligned)[0]
+            if isinstance(raw, (list, np.ndarray)):
+                rf_preds = [float(max(0, min(500, round(v)))) for v in raw]
+            else:
+                rf_preds = [float(max(0, min(500, round(raw))))] * 3
 
-        # 2. Ridge Regression
+        # 2. Ridge Multi-Horizon
         if self.ridge is not None:
             cols = self.ridge_features or list(input_df.columns)
-            aligned = input_df.reindex(columns=cols, fill_value=0.0)
-            raw_ridge = float(self.ridge.predict(aligned)[0])
-            results["ridge_regression"] = float(max(0, min(500, round(raw_ridge))))
+            aligned = input_df.reindex(columns=cols, fill_value=0.0).fillna(0.0)
+            raw = self.ridge.predict(aligned)[0]
+            if isinstance(raw, (list, np.ndarray)):
+                ridge_preds = [float(max(0, min(500, round(v)))) for v in raw]
+            else:
+                ridge_preds = [float(max(0, min(500, round(raw))))] * 3
 
-        # 3. Deep Learning (NumPy MLP / PyTorch fallback)
+        # 3. Deep Learning Multi-Horizon
         if self.dl_numpy_weights is not None:
             cols = self.dl_features or list(input_df.columns)
             aligned = input_df.reindex(columns=cols, fill_value=0.0)
-            if self.dl_scaler is not None:
-                scaled = self.dl_scaler.transform(aligned)
+            scaled = self.dl_scaler.transform(aligned) if self.dl_scaler is not None else aligned.values
+            raw = self._predict_dl_numpy(scaled)
+            if isinstance(raw, (list, np.ndarray)):
+                dl_preds = [float(max(0, min(500, round(v)))) for v in raw]
             else:
-                scaled = aligned.values
-            raw_dl = self._predict_dl_numpy(scaled)
-            results["deep_learning"] = float(max(0, min(500, round(raw_dl))))
+                dl_preds = [float(max(0, min(500, round(raw))))] * 3
         elif self.dl is not None and TORCH_AVAILABLE:
             cols = self.dl_features or list(input_df.columns)
             aligned = input_df.reindex(columns=cols, fill_value=0.0)
-            if self.dl_scaler is not None:
-                scaled = self.dl_scaler.transform(aligned)
-            else:
-                scaled = aligned.values
+            scaled = self.dl_scaler.transform(aligned) if self.dl_scaler is not None else aligned.values
             with torch.no_grad():
                 tensor_x = torch.tensor(scaled, dtype=torch.float32)
-                raw_dl = self.dl(tensor_x).item()
-            results["deep_learning"] = float(max(0, min(500, round(raw_dl))))
+                raw = self.dl(tensor_x).cpu().numpy().flatten()
+                dl_preds = [float(max(0, min(500, round(v)))) for v in raw]
 
-        vals = [v for v in results.values() if v is not None]
-        consensus = round(float(np.mean(vals))) if vals else baseline_epa
-        badge, color, advisory = self.get_severity(consensus)
+        # Consensus per horizon
+        consensus_24 = float(round(np.mean([rf_preds[0], ridge_preds[0], dl_preds[0]])))
+        consensus_48 = float(round(np.mean([rf_preds[1], ridge_preds[1], dl_preds[1]])))
+        consensus_72 = float(round(np.mean([rf_preds[2], ridge_preds[2], dl_preds[2]])))
 
         return {
-            "random_forest": results.get("random_forest", float(baseline_epa)),
-            "ridge_regression": results.get("ridge_regression", float(baseline_epa)),
-            "deep_learning": results.get("deep_learning", float(baseline_epa)),
-            "consensus_aqi": float(consensus),
+            "random_forest": rf_preds,
+            "ridge_regression": ridge_preds,
+            "deep_learning": dl_preds,
+            "consensus": [consensus_24, consensus_48, consensus_72],
+            "baseline_epa": baseline_epa
+        }
+
+    def predict(self, feature_dict: dict) -> dict:
+        """Single-point inference returning primary +24h forecast & consensus for API endpoint."""
+        horizons = self.predict_horizons(feature_dict)
+        c_24 = horizons["consensus"][0]
+        badge, color, advisory = self.get_severity(c_24)
+
+        return {
+            "random_forest": horizons["random_forest"][0],
+            "ridge_regression": horizons["ridge_regression"][0],
+            "deep_learning": horizons["deep_learning"][0],
+            "consensus_aqi": c_24,
+            "horizons": {
+                "24h": horizons["consensus"][0],
+                "48h": horizons["consensus"][1],
+                "72h": horizons["consensus"][2]
+            },
             "severity_badge": badge,
             "severity_color": color,
             "health_advisory": advisory

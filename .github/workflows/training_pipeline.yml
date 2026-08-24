@@ -31,10 +31,22 @@ jobs:
           pip install torch --index-url https://download.pytorch.org/whl/cpu
           pip install -r requirements-dev.txt
 
-      - name: Retrain All 3 Models & Sync to W&B Model Registry
+      - name: Prepare Historical Feature Store Dataset
+        env:
+          OPENWEATHER_API_KEY: ${{ secrets.OPENWEATHER_API_KEY }}
+          WANDB_API_KEY: ${{ secrets.WANDB_API_KEY }}
+        run: |
+          python -c "
+          import os
+          from scripts.backfill_global_capitals import run_global_backfill
+          run_global_backfill()
+          "
+
+      - name: Benchmark & Retrain All Multi-Horizon Models
         env:
           WANDB_API_KEY: ${{ secrets.WANDB_API_KEY }}
         run: |
+          python models/compare_models.py
           python models/randomForest.py
           python models/ridge_regression.py
           python models/deep_learning.py

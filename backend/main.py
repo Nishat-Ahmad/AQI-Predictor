@@ -25,6 +25,7 @@ from backend.schemas import (
 from backend.model_service import model_service
 from backend.forecast_service import generate_3day_forecast
 import pandas as pd
+import numpy as np
 
 app = FastAPI(
     title="Global AQI Predictor & 3-Day Forecast API",
@@ -134,38 +135,71 @@ def explain_prediction(payload: ExplainRequest):
     
     try:
         feat_dict = payload.features.dict()
-        cols = ["hour", "day", "month", "day_of_week", "co", "no2", "o3", "pm2_5", "pm10", "pm_ratio", "aqi_change_rate"]
+        input_df = pd.DataFrame([feat_dict])
         
-        # Calculate derived features
-        if feat_dict["pm_ratio"] is None and feat_dict["pm10"] > 0:
-            feat_dict["pm_ratio"] = feat_dict["pm2_5"] / feat_dict["pm10"]
-        elif feat_dict["pm_ratio"] is None:
-            feat_dict["pm_ratio"] = 0.5
+        # Fill standard lag & rolling defaults if single point
+        pm2_5 = float(feat_dict.get("pm2_5", 25.0))
+        pm10 = float(feat_dict.get("pm10", 40.0))
+        if "pm_ratio" not in input_df.columns or input_df["pm_ratio"].iloc[0] is None:
+            input_df["pm_ratio"] = round(pm2_5 / (pm10 + 1e-5), 4)
+        if "current_aqi" not in input_df.columns:
+            from backend.model_service import calculate_epa_aqi
+            input_df["current_aqi"] = calculate_epa_aqi(pm2_5, pm10, feat_dict.get("no2", 15.0), feat_dict.get("o3", 30.0), feat_dict.get("co", 500.0))
             
-        row = [feat_dict.get(c, 0.0) for c in cols]
-        df_row = pd.DataFrame([row], columns=cols)
-        pred = float(model_service.rf.predict(df_row)[0])
+        base_aqi = float(input_df["current_aqi"].iloc[0])
+        for lag in [1, 2, 3, 6, 12, 24, 48]:
+            input_df[f"aqi_lag_{lag}h"] = base_aqi
+        input_df["pm2_5_lag_1h"] = pm2_5
+        input_df["pm2_5_lag_24h"] = pm2_5
+        input_df["pm10_lag_24h"] = pm10
+        input_df["aqi_roll_mean_24h"] = base_aqi
+        input_df["aqi_roll_std_24h"] = 4.0
+        input_df["aqi_roll_max_24h"] = base_aqi + 10.0
+        input_df["aqi_roll_min_24h"] = max(0.0, base_aqi - 10.0)
+        input_df["pm2_5_roll_mean_24h"] = pm2_5
+        
+        hour = int(feat_dict.get("hour", 12))
+        month = int(feat_dict.get("month", 8))
+        input_df["hour_sin"] = np.sin(2 * np.pi * hour / 24.0)
+        input_df["hour_cos"] = np.cos(2 * np.pi * hour / 24.0)
+        input_df["month_sin"] = np.sin(2 * np.pi * month / 12.0)
+        input_df["month_cos"] = np.cos(2 * np.pi * month / 12.0)
+        input_df["lat"] = 51.5074
+        input_df["lon"] = -0.1278
+        
+        cols = model_service.rf_features or list(input_df.columns)
+        aligned_df = input_df.reindex(columns=cols, fill_value=0.0)
+        
+        raw_pred = model_service.rf.predict(aligned_df)[0]
+        pred = float(raw_pred[0] if isinstance(raw_pred, (list, np.ndarray)) else raw_pred)
         
         try:
             import shap
             explainer = shap.TreeExplainer(model_service.rf)
-            shap_values = explainer.shap_values(df_row)
+            shap_values = explainer.shap_values(aligned_df)
+            
+            if isinstance(shap_values, list):
+                sv = shap_values[0][0]
+            elif len(shap_values.shape) == 3:
+                sv = shap_values[0, :, 0]
+            else:
+                sv = shap_values[0]
+                
             base_value = float(explainer.expected_value[0] if isinstance(explainer.expected_value, (list, np.ndarray)) else explainer.expected_value)
             
             contributions = []
-            for feat_name, val, shap_val in zip(cols, row, shap_values[0]):
+            for feat_name, val, shap_val in zip(cols, aligned_df.iloc[0].values, sv):
                 contributions.append({
                     "feature": feat_name,
                     "value": float(val),
                     "shap_value": float(shap_val)
                 })
         except Exception:
-            # Fallback using normalized feature importances and baseline delta
             base_value = 50.0
             importances = getattr(model_service.rf, "feature_importances_", [1.0 / len(cols)] * len(cols))
             delta = pred - base_value
             contributions = []
-            for feat_name, val, imp in zip(cols, row, importances):
+            for feat_name, val, imp in zip(cols, aligned_df.iloc[0].values, importances):
                 contributions.append({
                     "feature": feat_name,
                     "value": float(val),
@@ -177,7 +211,8 @@ def explain_prediction(payload: ExplainRequest):
         return ExplainResponse(
             base_value=base_value,
             prediction=pred,
-            contributions=contributions
+            contributions=contributions[:10]
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Explanation failed: {str(e)}")
+

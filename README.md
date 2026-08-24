@@ -1,8 +1,25 @@
 # AQI Predictor: Global Multi-Model Atmospheric Forecasting & Intelligence Platform
 
-An end-to-end Machine Learning, MLOps, and Full-Stack Platform for **Global Air Quality Index (AQI) forecasting, interactive geospatial telemetry, and multi-model consensus across 195+ world capitals**. 
+An end-to-end Machine Learning, MLOps, and Full-Stack Platform for **Global Air Quality Index (AQI) multi-horizon forecasting, interactive geospatial telemetry, and multi-model consensus across 195+ world capitals**. 
 
-Powered by **1-Year Multi-Continent Historical Datasets**, official **0–500 US EPA AQI Standard**, **Weights & Biases (W&B)** MLOps tracking, **FastAPI** backend services, and a modern **Astro + Vanilla CSS Glassmorphism** frontend featuring interactive Leaflet maps, 72-hour continuous trajectory curves, and SHAP explainability.
+Powered by **1-Year Multi-Continent Historical Time-Series**, official **0–500 US EPA AQI Standard**, **Weights & Biases (W&B)** MLOps tracking and Model Registry, **FastAPI** backend services, and a modern **Astro + Vanilla CSS Glassmorphism** frontend featuring interactive Leaflet maps, 72-hour continuous trajectory curves, and SHAP explainability.
+
+---
+
+## Architectural Notes: Feature Store & MLOps Infrastructure
+
+> [!NOTE]
+> **Weights & Biases (W&B) Usage**: Due to credit-card and billing constraints on commercial feature platforms (such as Hopsworks / Vertex AI Feature Store), **Weights & Biases** is utilized as our **Experiment Tracking, Dataset Artifact Versioning, and Model Registry** system. Feature snapshots and time-series tables are versioned and logged as W&B Artifacts, serving as the versioned storage layer for historical training and evaluation datasets.
+
+### True Feature Store $\to$ Model $\to$ Forecast Pipeline
+1. **Feature Ingestion**: Real-time atmospheric observations (current reading + past 48 hours) are ingested for the target location.
+2. **Feature Engineering**: Time-series features are computed strictly from observations available up to time $t$:
+   - Temporal lags: `aqi_lag_1h`, `aqi_lag_2h`, `aqi_lag_3h`, `aqi_lag_6h`, `aqi_lag_12h`, `aqi_lag_24h`, `aqi_lag_48h`
+   - Pollutant lags: `pm2_5_lag_1h`, `pm2_5_lag_24h`, `pm10_lag_24h`
+   - Rolling 24h aggregations: `aqi_roll_mean_24h`, `aqi_roll_std_24h`, `aqi_roll_max_24h`, `aqi_roll_min_24h`, `pm2_5_roll_mean_24h`
+   - Cyclical temporal signals: `hour_sin`, `hour_cos`, `month_sin`, `month_cos`, `day_of_week`
+3. **Multi-Horizon ML Inference**: Features are fed directly into trained machine learning models (Random Forest, Ridge Regression, PyTorch MLP) to forecast true future horizons (**+24h, +48h, +72h**) without wrapping external pollutant predictions.
+4. **Out-of-Time Temporal Evaluation**: Models are validated on an out-of-time test set (chronological 80/20 split) with zero future-to-past data leakage.
 
 ---
 
@@ -20,8 +37,8 @@ AQI-Predictor/
 ├── backend/                   # FastAPI REST API & Model Inference Engine
 │   ├── main.py                # REST endpoints, static routing & CORS configuration
 │   ├── schemas.py             # Pydantic data validation schemas
-│   ├── model_service.py       # Multi-model inference (RF, Ridge, PyTorch MLP) on 0-500 scale
-│   └── forecast_service.py    # 72-Hour OpenWeather trajectory synthesis & daily peaks
+│   ├── model_service.py       # Multi-horizon inference (RF, Ridge, PyTorch MLP) on 0-500 scale
+│   └── forecast_service.py    # Feature Store -> Multi-Model 72-Hour trajectory synthesis
 ├── frontend/                  # Modern Astro & Vanilla CSS Dashboard
 │   ├── src/                   # Astro UI Components & Modular layouts
 │   │   ├── components/        # HeroAtmosphere, ModelConsensus, GlobalMap, ForecastCards, TrajectoryChart
@@ -29,22 +46,36 @@ AQI-Predictor/
 │   ├── css/                   # Curated pastel theme variables, cards, map & responsive layouts
 │   └── js/                    # Client app, 195+ capitals database, fuzzy search, Leaflet & Chart.js
 ├── models/                    # Machine Learning Architectures & Training Pipelines
-│   ├── randomForest.py        # Random Forest Regressor (100 Trees) + SHAP values
-│   ├── ridge_regression.py    # RidgeCV with StandardScaler & L2 regularization
-│   ├── deep_learning.py       # PyTorch 4-Layer MLP with BatchNorm & Dropout
-│   └── compare_models.py      # Unified model evaluation & leaderboard benchmark
+│   ├── randomForest.py        # Multi-Horizon Random Forest Regressor (100 Trees) + SHAP values
+│   ├── ridge_regression.py    # Multi-Horizon RidgeCV with StandardScaler & L2 regularization
+│   ├── deep_learning.py       # Multi-Horizon PyTorch 4-Layer MLP with BatchNorm & Dropout
+│   └── compare_models.py      # Unified out-of-time benchmarking & leaderboard
 ├── scripts/                   # Data Ingestion & MLOps Pipelines
-│   ├── backfill_global_capitals.py # 1-Year historical backfill across 18 major world capitals (153,600 rows)
+│   ├── backfill_global_capitals.py # 1-Year historical backfill & temporal feature generation (151,440 rows)
 │   ├── sync_to_wandb.py       # Weights & Biases dataset and model registry synchronization
-│   └── feature_pipeline.py    # Real-time atmospheric feature extraction
+│   └── feature_pipeline.py    # Real-time atmospheric feature extraction snapshot
 ├── data/
-│   └── historical_aqi_features.csv # 1-Year multi-capital training dataset (0-500 EPA targets)
+│   └── historical_aqi_features.csv # 1-Year multi-horizon feature matrix
 ├── artifacts/                 # Serialized production model weights (.pkl, .pt)
 ├── EDA/
 ├── requirements.txt           # Lean production backend dependencies for Vercel deployment
 ├── requirements-dev.txt       # Full ML, training, & MLOps dependencies (PyTorch, W&B, SHAP)
 └── vercel.json                # Vercel deployment configuration
 ```
+
+---
+
+## Machine Learning Benchmarks (Out-of-Time Chronological Test Set)
+
+Trained on **121,152 historical hourly samples** and evaluated on **30,288 out-of-time test samples** across 18 world capitals covering all global climate zones:
+
+| Model Architecture | Training Pipeline | Test $R^2$ (+24h) | Test $R^2$ (+48h) | Test $R^2$ (+72h) | Mean $R^2$ | Test RMSE (+24h) | Test MAE (+24h) |
+| :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| **Ridge Regression** | StandardScaler + RidgeCV | **`0.7525`** | **`0.6551`** | **`0.6097`** | **`0.6724`** | `22.69` | `14.18` |
+| **Random Forest** | Scikit-Learn (100 Trees, Depth 16) | **`0.7399`** | **`0.6360`** | **`0.6029`** | **`0.6596`** | `23.26` | `14.57` |
+| **Deep Learning (MLP)** | PyTorch 4-Layer Neural Network | **`0.7021`** | **`0.6294`** | **`0.5886`** | **`0.6400`** | `24.90` | `15.78` |
+
+*All runs, datasets, and model checkpoints are tracked on **Weights & Biases** under project `pearls-aqi-predictor`.*
 
 ---
 
@@ -67,29 +98,15 @@ AQI-Predictor/
   * `301 – 500+`: **Hazardous** (Pastel Rose `#f472b6`)
 
 ### 3. Multi-Model AI Suite & Ensemble Consensus
-* **Random Forest Regressor** ($R^2 = 0.9997$, $\text{RMSE} = 1.03$): 100-tree ensemble modeling non-linear atmospheric interactions.
-* **PyTorch Deep Learning MLP** ($R^2 = 0.9659$, $\text{RMSE} = 11.56$): 4-layer feedforward neural network with Batch Normalization, ReLU activations, and Dropout.
-* **Ridge Regression** ($R^2 = 0.5613$, $\text{RMSE} = 0.62$): $L_2$-regularized linear statistical baseline.
-* **Ensemble Consensus**: Concurrent real-time inference providing calibrated weighted-mean projections.
+* **Random Forest Regressor**: 100-tree ensemble capturing non-linear atmospheric dynamics.
+* **PyTorch Deep Learning MLP**: 4-layer feedforward neural network with Batch Normalization, ReLU activations, and Dropout.
+* **Ridge Regression**: $L_2$-regularized linear statistical baseline.
+* **Ensemble Consensus**: Concurrent real-time inference providing calibrated weighted-mean projections across horizons.
 
 ### 4. 72-Hour Trajectory & SHAP Explainability
 * **Continuous 72-Hour Trajectory Curves**: Hourly Chart.js forecast with filter toggles (*All, Consensus, RF, Ridge, DL*).
 * **3-Day Summary Cards**: Daily average AQI, peak smog hour, dominant pollutant, and health advisories.
-* **SHAP Explainability**: Dynamic feature contribution breakdown showing exact pollutant impact on current air quality.
-
----
-
-## Machine Learning Benchmarks (1-Year Global Capitals Dataset)
-
-Trained on **153,600 historical hourly records** across 18 world capitals covering all climate zones:
-
-| Model Architecture | Training Pipeline | Test $R^2$ | Test RMSE | Test MAE | W&B Artifact |
-| :--- | :--- | :---: | :---: | :---: | :--- |
-| **Random Forest** | Scikit-Learn 100 Trees | **`0.9997`** | **`1.0356`** | **`0.0507`** | `aqi_random_forest_model:v0` |
-| **Deep Learning** | PyTorch 4-Layer MLP | **`0.9659`** | **`11.5667`** | **`6.6057`** | `aqi_deep_learning_model:v0` |
-| **Ridge Regression** | StandardScaler + RidgeCV | **`0.5613`** | **`0.6280`** | **`0.4971`** | `aqi_ridge_model:v0` |
-
-All runs, datasets, and model checkpoints are tracked on **Weights & Biases** under project `pearls-aqi-predictor`.
+* **SHAP Explainability**: Dynamic feature contribution breakdown showing exact temporal lag and pollutant impacts on forecasted air quality.
 
 ---
 
@@ -120,15 +137,13 @@ WANDB_API_KEY=your_wandb_api_key
 
 ### 3. Run Historical Backfill & Model Retraining
 ```bash
-# 1. Fetch 1-year historical dataset across world capitals
+# 1. Generate 1-year multi-horizon feature matrix
 python scripts/backfill_global_capitals.py
 
-# 2. Retrain all 3 models
-python models/randomForest.py
-python models/ridge_regression.py
-python models/deep_learning.py
+# 2. Benchmark and train all 3 multi-horizon models
+python models/compare_models.py
 
-# 3. Synchronize dataset & artifacts to Weights & Biases
+# 3. Synchronize dataset & artifacts to Weights & Biases Model Registry
 python scripts/sync_to_wandb.py
 ```
 
@@ -151,8 +166,8 @@ Navigate to **`http://localhost:8000/`** (FastAPI) or **`http://localhost:3000/`
 | `GET` | `/` | Serves the interactive AQI dashboard |
 | `GET` | `/health` | Health check & model readiness status |
 | `POST` | `/predict` | Multi-model AQI inference for custom pollutant inputs |
-| `GET` | `/forecast/3day?lat={lat}&lon={lon}&city={city}` | 72-hour forecast and 3-day daily summaries |
-| `POST` | `/explain` | SHAP feature contribution impacts |
+| `GET` | `/forecast/3day?lat={lat}&lon={lon}&city={city}` | 72-hour multi-horizon forecast and daily summaries |
+| `POST` | `/explain` | SHAP feature contribution impacts for forecasted horizon |
 | `GET` | `/docs` | Interactive Swagger API documentation |
 
 ---
@@ -161,6 +176,6 @@ Navigate to **`http://localhost:8000/`** (FastAPI) or **`http://localhost:3000/`
  
 Automated via **GitHub Actions** with pip dependency caching, timeout protection, concurrency control, and artifact persistence:
 * **`ci_pipeline.yml`**: Python syntax compilation, Pydantic schema validation, and multi-model smoke testing on every push and PR against lean production requirements.
-* **`training_pipeline.yml`**: Scheduled daily retraining of Random Forest, Ridge Regression, and PyTorch MLP models, automatic upload of trained weights (`.pkl`/`.pt`) to GitHub Action artifacts, and cloud synchronization to Weights & Biases Model Registry.
+* **`training_pipeline.yml`**: Scheduled daily retraining of multi-horizon Random Forest, Ridge Regression, and PyTorch MLP models, automatic upload of trained weights (`.pkl`/`.pt`) to GitHub Action artifacts, and cloud synchronization to Weights & Biases Model Registry.
 * **`feature_pipeline.yml`**: Hourly automated live atmospheric feature extraction and logging to W&B Feature Store.
 * **`backfill_pipeline.yml`**: On-demand workflow to execute global multi-continent backfill across 18 capitals, generating and preserving `historical_aqi_features.csv` as a downloadable artifact and syncing to W&B.
