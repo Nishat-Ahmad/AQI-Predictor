@@ -6,8 +6,9 @@ let tileLayer = null;
 let markersMap = {};
 let selectedMarker = null;
 
-const DARK_TILES = "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png";
-const LIGHT_TILES = "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png";
+const CARTO_KEY = "cb1_2wjh_1_8f9b9dbd5dcb27894a1a1388";
+const DARK_TILES = `https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png?key=${CARTO_KEY}`;
+const LIGHT_TILES = `https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?key=${CARTO_KEY}`;
 const TILE_ATTRIB = "&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a>, &copy; <a href='https://carto.com/attributions'>CARTO</a>";
 
 export function initGlobalMap(onCitySelectCallback) {
