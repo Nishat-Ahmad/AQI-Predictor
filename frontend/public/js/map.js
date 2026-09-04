@@ -17,12 +17,22 @@ export function initGlobalMap(onCitySelectCallback) {
 
     const isDark = (document.documentElement.getAttribute("data-theme") || "dark") === "dark";
 
-    // Initialize Leaflet Map centered on world view
+    // World bounds: snap left/right at -180/180 and top/bottom at Mercator limit (~85.05°)
+    const mapBounds = L.latLngBounds(
+        L.latLng(-85.051129, -180),
+        L.latLng(85.051129, 180)
+    );
+
+    // Initialize Leaflet Map centered on world view with rigid bounds snapping
     mapInstance = L.map("world-map", {
         center: [28.0, 35.0],
-        zoom: 2.2,
-        minZoom: 1.8,
+        zoom: 2.6,
+        minZoom: 2.3,
+        zoomSnap: 0.1,
         maxZoom: 10,
+        maxBounds: mapBounds,
+        maxBoundsViscosity: 1.0,
+        worldCopyJump: false,
         zoomControl: false,
         attributionControl: false
     });
@@ -32,7 +42,9 @@ export function initGlobalMap(onCitySelectCallback) {
     tileLayer = L.tileLayer(isDark ? DARK_TILES : LIGHT_TILES, {
         attribution: TILE_ATTRIB,
         subdomains: "abcd",
-        maxZoom: 19
+        maxZoom: 19,
+        bounds: mapBounds,
+        noWrap: true
     }).addTo(mapInstance);
 
     // Setup Search Bar & Render Markers
